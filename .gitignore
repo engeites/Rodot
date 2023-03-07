@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+create_database.sql
+parenting_bot.db
+.idea/
+"C:\\sqlitedbs\\database.db"
