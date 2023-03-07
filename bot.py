@@ -1,13 +1,11 @@
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Bot, Dispatcher, executor
 from aiogram.dispatcher.filters import Text
 
-from keyboards.main_keyboard import create_main_keyboard
-from main import get_users
 from handlers.user import callback_data
 from handlers.user import send_welcome, callbacks, newborn_care_intro, cmd_random, \
     send_random_number, profile_menu, main_menu, bad_tips
 
-from config import API_TOKEN
+from app.config import API_TOKEN
 
 def create_bot():
     bot = Bot(token=API_TOKEN)
