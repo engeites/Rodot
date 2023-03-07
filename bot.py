@@ -1,15 +1,30 @@
-from aiogram import Bot, Dispatcher, executor
+import asyncio
+import logging
+
+from aiogram import Bot, Dispatcher
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters import Text
 
-from app.handlers import callback_data
-from app.handlers import send_welcome, callbacks, newborn_care_intro, cmd_random, \
+from app.handlers.callback import callback_data
+from app.handlers.registration import register_profile_handlers
+from app.handlers.user import send_welcome, callbacks, newborn_care_intro, cmd_random, \
     send_random_number, profile_menu, main_menu, bad_tips
 
 from app.config import API_TOKEN
 
-def create_bot():
+logger = logging.getLogger(__name__)
+
+async def create_bot():
+
+    # Настройка логирования в stdout
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    )
+    logger.error("Starting bot")
+
     bot = Bot(token=API_TOKEN)
-    dp = Dispatcher(bot)
+    dp = Dispatcher(bot, storage=MemoryStorage())
 
     dp.register_message_handler(send_welcome, commands=['start'])
     dp.register_message_handler(cmd_random, commands=['random'])
@@ -19,9 +34,12 @@ def create_bot():
     dp.register_message_handler(profile_menu, Text(equals="My Profile"))
     dp.register_message_handler(main_menu, Text(equals="Go to main menu"))
     dp.register_message_handler(bad_tips, Text(equals="Bad Tips"))
-    return bot, dp
+
+    register_profile_handlers(dp)
+
+    await dp.start_polling()
+
 
 
 if __name__ == '__main__':
-    bot, dp = create_bot()
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(create_bot())
