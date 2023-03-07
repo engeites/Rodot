@@ -1,12 +1,12 @@
 from random import randint
 
 from aiogram import types
-from aiogram.types import InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from keyboards.main_keyboard import create_main_keyboard
-from keyboards.profile import profile_keyboard
-from database.tips_crud import get_all_tips, get_tip_by_id
+from app.keyboards.main_keyboard import create_main_keyboard
+from app.keyboards.profile import profile_keyboard
+from app.database.tips_crud import get_all_tips, get_tip_by_id
 
 from utils.form_newborn_contents import newborn_section_introduction
 

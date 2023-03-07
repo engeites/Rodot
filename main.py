@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from database import user_crud, tips_crud
+from app.database import tips_crud, user_crud
 
 
 def get_current_time():

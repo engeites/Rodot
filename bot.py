@@ -1,8 +1,8 @@
 from aiogram import Bot, Dispatcher, executor
 from aiogram.dispatcher.filters import Text
 
-from handlers.user import callback_data
-from handlers.user import send_welcome, callbacks, newborn_care_intro, cmd_random, \
+from app.handlers import callback_data
+from app.handlers import send_welcome, callbacks, newborn_care_intro, cmd_random, \
     send_random_number, profile_menu, main_menu, bad_tips
 
 from app.config import API_TOKEN
