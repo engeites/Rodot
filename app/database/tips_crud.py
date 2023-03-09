@@ -6,6 +6,8 @@ from typing import List
 from .models import ParentingTip, Tag
 from .db import engine
 
+from app.utils.validators import get_tags_from_str
+
 Session = sessionmaker(bind=engine)
 
 
@@ -35,8 +37,9 @@ def create_new_article(article_data: dict):
         age_in_days=tip_age,
         created_at=current_date
     )
+    tag_list = get_tags_from_str(article_data['tags'])
 
-    for tag_name in article_data['tags']:
+    for tag_name in tag_list:
         tag = Tag(name=tag_name)
         tip.tags.append(tag)
         db.add(tag)

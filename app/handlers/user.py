@@ -27,7 +27,20 @@ async def newborn_care_intro(message: types.Message):
 
 async def callbacks(call: types.CallbackQuery, callback_data: dict):
     post_id = callback_data["id"]
-    await call.message.answer(get_tip_by_id(post_id).tip)
+    article = get_tip_by_id(post_id)
+    text = article.header
+    text += "\n\n"
+    text += article.tip
+    text += "\n\n"
+    tags = article.tags
+
+    print(type(tags))
+    print(tags)
+
+    for tag in tags:
+        text += "#" + tag.name
+
+    await call.message.answer(text)
 
 
 async def profile_menu(message: types.Message):
