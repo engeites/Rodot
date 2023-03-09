@@ -11,7 +11,7 @@ class User(Base):
     telegram_user_id = Column(String, nullable=False)
     city = Column(String)
     created_at = Column(DateTime, nullable=False)
-    paid = Column(Boolean)
+    paid = Column(Boolean, default=False)
     subscription_end = Column(DateTime)
     children = relationship('Child', backref='parent')
 

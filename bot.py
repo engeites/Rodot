@@ -8,6 +8,8 @@ from aiogram.dispatcher.filters import Text
 from app.handlers.callback import callback_data
 from app.handlers.registration import register_profile_handlers
 from app.handlers.profile import register_info_handlers
+from app.handlers.basic import register_basic_handlers
+
 from app.handlers.user import send_welcome, callbacks, newborn_care_intro, cmd_random, \
     send_random_number, profile_menu, main_menu, bad_tips
 
@@ -27,7 +29,7 @@ async def create_bot():
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher(bot, storage=MemoryStorage())
 
-    dp.register_message_handler(send_welcome, commands=['start'])
+    # dp.register_message_handler(send_welcome, commands=['start'])
     dp.register_message_handler(cmd_random, commands=['random'])
     dp.register_message_handler(newborn_care_intro, Text(equals="Newborn Care"))
     dp.register_callback_query_handler(send_random_number, Text(equals="random_value"))
@@ -38,6 +40,7 @@ async def create_bot():
 
     register_profile_handlers(dp)
     register_info_handlers(dp)
+    register_basic_handlers(dp)
 
     await dp.start_polling()
 

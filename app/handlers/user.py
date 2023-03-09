@@ -8,7 +8,7 @@ from app.keyboards.main_keyboard import create_main_keyboard
 from app.keyboards.profile import profile_keyboard
 from app.database.tips_crud import get_all_tips, get_tip_by_id
 
-from utils.form_newborn_contents import newborn_section_introduction
+from app.utils.form_newborn_contents import newborn_section_introduction
 
 
 async def send_welcome(message: types.Message):

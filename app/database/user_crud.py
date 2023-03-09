@@ -1,14 +1,17 @@
+from datetime import datetime
+
 from sqlalchemy.orm import sessionmaker
 from typing import List, Type
 from .models import User
 from .db import engine
 
+
 Session = sessionmaker(bind=engine)
 
 
-def create_user(telegram_user_id: str, telegram_chat_id: str, created_at) -> User:
+def create_user(telegram_user_id: int, created_at: datetime) -> User:
     session = Session()
-    user = User(telegram_user_id=telegram_user_id, telegram_chat_id=telegram_chat_id, created_at=created_at)
+    user = User(telegram_user_id=telegram_user_id, created_at=created_at)
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -30,11 +33,24 @@ def get_all_users() -> list[Type[User]]:
     return users
 
 
-def update_user(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> User:
+def update_user1(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> User:
     session = Session()
     user = session.query(User).filter(User.id == user_id).first()
     user.telegram_user_id = telegram_user_id
     user.telegram_chat_id = telegram_chat_id
+    session.commit()
+    session.refresh(user)
+    session.close()
+    return user
+
+
+def update_user(user_id: int, field: str, new_value) -> User:
+    print(user_id)
+    session = Session()
+    user = session.query(User).filter(User.telegram_user_id == user_id).first()
+    if field == 'city':
+        user.city = new_value
+
     session.commit()
     session.refresh(user)
     session.close()
