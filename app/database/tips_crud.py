@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 from typing import List
@@ -7,10 +9,34 @@ from .db import engine
 Session = sessionmaker(bind=engine)
 
 
-def create_tip(age_in_days: int, header: str, tip_text: str, tag_names: List[str]):
+def create_tip(header: str, tip_text: str, tag_names: List[str], age_in_days: int):
     db = Session()
     tip = ParentingTip(age_in_days=age_in_days, header=header, tip=tip_text)
     for tag_name in tag_names:
+        tag = Tag(name=tag_name)
+        tip.tags.append(tag)
+        db.add(tag)
+    db.add(tip)
+    db.commit()
+    db.refresh(tip)
+    return tip
+
+def create_new_article(article_data: dict):
+    db = Session()
+    current_date = datetime.now()
+
+    tip_header = article_data['header']
+    tip_body = article_data['tip']
+    tip_age = int(article_data['age_in_days'])
+
+    tip = ParentingTip(
+        header=tip_header,
+        tip=tip_body,
+        age_in_days=tip_age,
+        created_at=current_date
+    )
+
+    for tag_name in article_data['tags']:
         tag = Tag(name=tag_name)
         tip.tags.append(tag)
         db.add(tag)

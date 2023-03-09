@@ -13,6 +13,7 @@ class User(Base):
     created_at = Column(DateTime, nullable=False)
     paid = Column(Boolean, default=False)
     subscription_end = Column(DateTime)
+    referral_id = Column(Integer)
     children = relationship('Child', backref='parent')
 
 tags_association_table = Table(
@@ -44,7 +45,18 @@ class ParentingTip(Base):
     header = Column(String, nullable=False)
     tip = Column(String, nullable=False)
     age_in_days = Column(String, nullable=False)
+    created_at = Column(DateTime)
     tags = relationship("Tag", secondary=tags_association_table, back_populates="tips", lazy=False)
+
+
+
+class BadTip(Base):
+    __tablename__ = 'bad_tips'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    header = Column(String, nullable=False)
+    tip = Column(String, nullable=False)
+    age_in_days = Column(String, nullable=False)
+
 
 
 # Define a ChildFriendlyPlace model

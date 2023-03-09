@@ -10,52 +10,6 @@ from app.database.tips_crud import get_all_tips, get_tip_by_id
 
 from app.utils.form_newborn_contents import newborn_section_introduction
 
-
-async def send_welcome(message: types.Message):
-    text = """
-    Hello and welcome to the Parenting Tips bot! 
-
-I'm here to help you navigate the challenges of parenting and provide you with valuable information and advice for your child's development. 
-
-To get started, please select a category from the menu below:
-- Newborn Care
-- Sleeping Tips
-- Feeding Advice
-- Developmental Activities
-- And more!
-
-You can also search for articles by typing a keyword or topic in the search bar. 
-
-Thank you for using Parenting Tips bot, and happy parenting! 
-"""
-    await message.answer(text, reply_markup=create_main_keyboard())
-
-
-# async def return_newborn_care_contents(message: types.Message):
-    # text = utils.form_newborn_contents.get_tips_with_tag('newborn')
-    # await message.answer(text, reply_markup=create_main_keyboard())
-
-
-async def cmd_random(message: types.Message):
-    mark = InlineKeyboardMarkup()
-    mark.add(InlineKeyboardButton(
-        text="Нажми меня",
-        callback_data="random_value")
-    )
-
-    await message.answer(
-        "Нажмите на кнопку, чтобы бот отправил число от 1 до 10",
-        reply_markup=mark
-    )
-
-async def send_random_number(callback: types.CallbackQuery):
-    await callback.message.answer(str(randint(1, 10)))
-    await callback.answer(
-        text="Спасибо, что воспользовались ботом!",
-        show_alert=True
-    )
-
-
 callback_data = CallbackData('articles', 'id')
 
 

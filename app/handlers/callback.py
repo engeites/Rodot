@@ -8,7 +8,3 @@ async def button_callback_handler(callback: CallbackQuery, callback_data: dict):
     button_id = callback_data.get('id')
     await callback.answer(button_id)
 
-    
-
-
-
