@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from .db import Base, engine
@@ -9,14 +9,25 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
     telegram_user_id = Column(String, nullable=False)
-    telegram_chat_id = Column(String, nullable=False)
+    city = Column(String)
     created_at = Column(DateTime, nullable=False)
+    paid = Column(Boolean)
+    subscription_end = Column(DateTime)
+    children = relationship('Child', backref='parent')
 
 tags_association_table = Table(
     'tags_association', Base.metadata,
     Column('tip_id', Integer, ForeignKey('parenting_tips.id')),
     Column('tag_id', Integer, ForeignKey('tags.id'))
 )
+
+class Child(Base):
+    __tablename__ = 'children'
+    id = Column(Integer, primary_key=True)
+    age = Column(Integer)
+    name = Column(String)
+    parent_id = Column(Integer, ForeignKey('users.id'))
+
 
 class Tag(Base):
     __tablename__ = "tags"

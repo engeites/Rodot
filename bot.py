@@ -7,6 +7,7 @@ from aiogram.dispatcher.filters import Text
 
 from app.handlers.callback import callback_data
 from app.handlers.registration import register_profile_handlers
+from app.handlers.profile import register_info_handlers
 from app.handlers.user import send_welcome, callbacks, newborn_care_intro, cmd_random, \
     send_random_number, profile_menu, main_menu, bad_tips
 
@@ -36,6 +37,7 @@ async def create_bot():
     dp.register_message_handler(bad_tips, Text(equals="Bad Tips"))
 
     register_profile_handlers(dp)
+    register_info_handlers(dp)
 
     await dp.start_polling()
 
