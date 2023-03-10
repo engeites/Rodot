@@ -49,6 +49,15 @@ def create_new_article(article_data: dict):
     return tip
 
 
+def get_multiple_tips_by_ids(id_list: list):
+    session = Session()
+    print(f"Got these id's: {id_list}")
+    tips = session.query(ParentingTip).filter(ParentingTip.id.in_(id_list)).all()
+    for tip in tips:
+        print(tip)
+    session.close()
+    return tips
+
 def get_tip_by_id(tip_id: int) -> ParentingTip:
     session = Session()
     tip = session.query(ParentingTip).filter(ParentingTip.id == tip_id).first()

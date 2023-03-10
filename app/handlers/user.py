@@ -4,9 +4,11 @@ from aiogram.utils.callback_data import CallbackData
 
 from app.keyboards.main_keyboards import categories_keyboard
 from app.keyboards.profile import profile_keyboard
+from app.keyboards.inline.bookmarks import add_bookmark_keyboard
 from app.database.tips_crud import get_all_tips, get_tip_by_id
 
 from app.utils.form_newborn_contents import newborn_section_introduction
+
 
 callback_data = CallbackData('articles', 'id')
 
@@ -32,13 +34,10 @@ async def callbacks(call: types.CallbackQuery, callback_data: dict):
     text += "\n\n"
     tags = article.tags
 
-    print(type(tags))
-    print(tags)
-
     for tag in tags:
         text += " #" + tag.name
 
-    await call.message.answer(text)
+    await call.message.answer(text, reply_markup=add_bookmark_keyboard(article.id))
 
 
 async def profile_menu(message: types.Message):

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
 from typing import List, Type
-from .models import User, Child
+from .models import User, Child, Bookmark
 from .db import engine
 
 from app.utils.validators import calculate_age_in_days
@@ -78,9 +78,9 @@ def add_child(user_id: int, birth_date: datetime, sex: str):
 
         age_in_days = calculate_age_in_days(birth_date)
         child = Child(
-            age= age_in_days,
-            sex= sex,
-            parent= user
+            age=age_in_days,
+            sex=sex,
+            parent=user
         )
 
         db.add(child)
@@ -92,6 +92,30 @@ def add_child(user_id: int, birth_date: datetime, sex: str):
     except:
         print("Something bad happened when adding child")
         return False
+
+
+def add_bookmark(user_id: int, tip_id: int):
+    session = Session()
+    user = session.query(User).filter(User.telegram_user_id == user_id).first()
+
+    bookmark = Bookmark(
+        user_id=user.id,
+        bookmarked_tip_id=tip_id
+    )
+
+    session.add(bookmark)
+    user.bookmarks.append(bookmark)
+    session.commit()
+    session.refresh(user)
+    session.close()
+
+def get_my_bookmarks(user_id: int):
+    session = Session()
+    user = get_user_by_tg_id(user_id)
+    bookmarks = session.query(Bookmark).filter(Bookmark.user_id == user.id).all()
+    session.close()
+    return bookmarks
+
 
 def delete_user(user_id: int) -> None:
     session = Session()

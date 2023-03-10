@@ -1,6 +1,7 @@
+from datetime import datetime
+
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
 from .db import Base, engine
 
 
@@ -36,7 +37,7 @@ class Bookmark(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     bookmarked_tip_id = Column(Integer, nullable=False)
-    created_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.now())
     user = relationship('User', back_populates='bookmarks')
 
 class Tag(Base):

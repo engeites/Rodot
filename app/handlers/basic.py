@@ -7,8 +7,8 @@ from app.database.user_crud import create_user
 
 
 async def send_welcome(message: types.Message):
+    print(message.from_user.id)
     created_at = datetime.datetime.now()
-    user_id = message.from_user.id
     user, comment = create_user(user_id, created_at)
 
     if comment == 'exists':
@@ -18,6 +18,7 @@ async def send_welcome(message: types.Message):
         return
 
     reply_kb = initial_keyboard()
+
     text = """
     Hello and welcome to the Parenting Tips bot! 
 
