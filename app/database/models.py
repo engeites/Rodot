@@ -15,6 +15,7 @@ class User(Base):
     subscription_end = Column(DateTime)
     referral_id = Column(Integer)
     children = relationship('Child', backref='parent', lazy=False)
+    bookmarks = relationship('Bookmark', back_populates='user')
 
 tags_association_table = Table(
     'tags_association', Base.metadata,
@@ -29,6 +30,14 @@ class Child(Base):
     sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
 
+
+class Bookmark(Base):
+    __tablename__ = 'bookmarks'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    bookmarked_tip_id = Column(Integer, nullable=False)
+    created_at = Column(DateTime)
+    user = relationship('User', back_populates='bookmarks')
 
 class Tag(Base):
     __tablename__ = "tags"

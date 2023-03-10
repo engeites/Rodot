@@ -81,7 +81,7 @@ async def city_set(message: types.Message, state: FSMContext):
     else:
         await message.answer(f"Error occured")
 
-def register_profile_handlers(dp: Dispatcher):
+def register_registry_handlers(dp: Dispatcher):
     dp.register_message_handler(profile_start, Text(equals="Get a profile"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_message_handler(sex_set, state=ProfileInfo.sex)
