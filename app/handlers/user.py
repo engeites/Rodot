@@ -23,8 +23,8 @@ async def newborn_care_intro(message: types.Message):
 
     await message.answer(newborn_section_introduction(), reply_markup=mark)
 
-async def callbacks(call: types.CallbackQuery, cb: dict):
-    post_id = cb["id"]
+async def callbacks(call: types.CallbackQuery, callback_query: dict):
+    post_id = callback_query["id"]
     article = get_tip_by_id(post_id)
     text = article.header
     text += "\n\n"

@@ -14,7 +14,7 @@ class User(Base):
     paid = Column(Boolean, default=False)
     subscription_end = Column(DateTime)
     referral_id = Column(Integer)
-    children = relationship('Child', backref='parent')
+    children = relationship('Child', backref='parent', lazy=False)
 
 tags_association_table = Table(
     'tags_association', Base.metadata,
@@ -26,7 +26,7 @@ class Child(Base):
     __tablename__ = 'children'
     id = Column(Integer, primary_key=True)
     age = Column(Integer)
-    name = Column(String)
+    sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
 
 

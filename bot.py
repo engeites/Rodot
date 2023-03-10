@@ -10,6 +10,7 @@ from app.handlers.registration import register_profile_handlers
 from app.handlers.update_profile import register_info_handlers
 from app.handlers.basic import register_basic_handlers
 from app.handlers.admin import register_admin_hanlders
+from app.handlers.profile import register_profile_handlers
 
 from app.handlers.user import callbacks, newborn_care_intro, profile_menu, main_menu, bad_tips
 
@@ -38,6 +39,7 @@ async def create_bot():
     dp.register_message_handler(main_menu, Text(equals="Go to main menu"))
     dp.register_message_handler(bad_tips, Text(equals="Bad Tips"))
 
+    register_profile_handlers(dp)
     register_profile_handlers(dp)
     register_info_handlers(dp)
     register_basic_handlers(dp)

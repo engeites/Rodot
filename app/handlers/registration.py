@@ -6,6 +6,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.keyboards.main_keyboards import categories_keyboard
 
+from app.database.user_crud import add_child
+
 class ProfileUpdate():
     def __init__(self, birth_date, sex, city):
         self.birth_date = birth_date
@@ -67,16 +69,17 @@ async def city_set(message: types.Message, state: FSMContext):
         return
 
     user_data = await state.get_data()
-    update = ProfileUpdate(
+    success = add_child(
+        message.from_user.id,
         user_data['birth_date'],
         user_data['sex'],
-        message.text
     )
-
-    await message.answer(f"You have updated info: day of birth: {update.birth_date}, sex: {update.sex},"
-                         f"city: {update.city}", reply_markup=categories_keyboard())
-    await state.finish()
-
+    if success:
+        await message.answer(f"You have updated info: day of birth: {user_data['birth_date']}, sex: {user_data['sex']},"
+                             f"city: {city}", reply_markup=categories_keyboard())
+        await state.finish()
+    else:
+        await message.answer(f"Error occured")
 
 def register_profile_handlers(dp: Dispatcher):
     dp.register_message_handler(profile_start, Text(equals="Get a profile"), state='*')

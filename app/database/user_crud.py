@@ -2,8 +2,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
 from typing import List, Type
-from .models import User
+from .models import User, Child
 from .db import engine
+
+from app.utils.validators import calculate_age_in_days
 
 
 Session = sessionmaker(bind=engine)
@@ -68,6 +70,28 @@ def update_user(user_id: int, field: str, new_value) -> User:
     session.close()
     return user
 
+
+def add_child(user_id: int, birth_date: datetime, sex: str):
+    try:
+        db = Session()
+        user = get_user_by_tg_id(user_id)
+
+        age_in_days = calculate_age_in_days(birth_date)
+        child = Child(
+            age= age_in_days,
+            sex= sex,
+            parent= user
+        )
+
+        db.add(child)
+        user.children.append(child)
+        db.commit()
+        db.refresh(user)
+        db.close()
+        return child
+    except:
+        print("Something bad happened when adding child")
+        return False
 
 def delete_user(user_id: int) -> None:
     session = Session()
