@@ -1,8 +1,10 @@
 from datetime import datetime
 from aiogram import Dispatcher, types
+from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from app.keyboards.main_keyboards import categories_keyboard
 
 class ProfileUpdate():
     def __init__(self, birth_date, sex, city):
@@ -72,12 +74,12 @@ async def city_set(message: types.Message, state: FSMContext):
     )
 
     await message.answer(f"You have updated info: day of birth: {update.birth_date}, sex: {update.sex},"
-                         f"city: {update.city}")
+                         f"city: {update.city}", reply_markup=categories_keyboard())
     await state.finish()
 
 
 def register_profile_handlers(dp: Dispatcher):
-    dp.register_message_handler(profile_start, commands=['update'], state='*')
+    dp.register_message_handler(profile_start, Text(equals="Get a profile"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_message_handler(sex_set, state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)

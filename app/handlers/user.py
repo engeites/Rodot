@@ -1,10 +1,8 @@
-from random import randint
-
 from aiogram import types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from app.keyboards.main_keyboard import create_main_keyboard
+from app.keyboards.main_keyboards import categories_keyboard
 from app.keyboards.profile import profile_keyboard
 from app.database.tips_crud import get_all_tips, get_tip_by_id
 
@@ -25,8 +23,8 @@ async def newborn_care_intro(message: types.Message):
 
     await message.answer(newborn_section_introduction(), reply_markup=mark)
 
-async def callbacks(call: types.CallbackQuery, callback_data: dict):
-    post_id = callback_data["id"]
+async def callbacks(call: types.CallbackQuery, cb: dict):
+    post_id = cb["id"]
     article = get_tip_by_id(post_id)
     text = article.header
     text += "\n\n"
@@ -38,7 +36,7 @@ async def callbacks(call: types.CallbackQuery, callback_data: dict):
     print(tags)
 
     for tag in tags:
-        text += "#" + tag.name
+        text += " #" + tag.name
 
     await call.message.answer(text)
 
@@ -55,7 +53,7 @@ async def profile_menu(message: types.Message):
 async def main_menu(message: types.Message):
     await message.answer(
         "Welcome to main menu",
-        reply_markup=create_main_keyboard()
+        reply_markup=categories_keyboard()
     )
 
 async def bad_tips(message: types.Message):

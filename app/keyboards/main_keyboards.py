@@ -1,7 +1,18 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
-def create_main_keyboard():
+def initial_keyboard():
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+
+    go_to_profile = KeyboardButton("Get a profile")
+    see_ages = KeyboardButton("Choose age")
+    how_to_use_bot = KeyboardButton("Our philosophy")
+
+    kb.add(go_to_profile, see_ages).add(how_to_use_bot)
+    return kb
+
+
+def categories_keyboard():
 
     # create a custom keyboard
     custom_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)

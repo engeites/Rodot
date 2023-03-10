@@ -7,7 +7,7 @@ from aiogram.dispatcher.filters import Text
 
 from app.handlers.callback import callback_data
 from app.handlers.registration import register_profile_handlers
-from app.handlers.profile import register_info_handlers
+from app.handlers.update_profile import register_info_handlers
 from app.handlers.basic import register_basic_handlers
 from app.handlers.admin import register_admin_hanlders
 

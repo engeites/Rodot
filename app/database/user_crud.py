@@ -9,21 +9,33 @@ from .db import engine
 Session = sessionmaker(bind=engine)
 
 
-def create_user(telegram_user_id: int, created_at: datetime) -> User:
-    session = Session()
-    user = User(telegram_user_id=telegram_user_id, created_at=created_at)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    session.close()
-    return user
-
-
 def get_user_by_id(user_id: int) -> User:
     session = Session()
     user = session.query(User).filter(User.id == user_id).first()
     session.close()
     return user
+
+
+def get_user_by_tg_id(user_id: int) -> User:
+    session = Session()
+    user = session.query(User).filter(User.telegram_user_id == user_id).first()
+    session.close()
+    return user
+
+
+def create_user(telegram_user_id: int, created_at: datetime) -> tuple[User, str]:
+    session = Session()
+    user_exists = get_user_by_tg_id(telegram_user_id)
+    if not user_exists:
+        comment = "new"
+        user = User(telegram_user_id=telegram_user_id, created_at=created_at)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+        session.close()
+        return user, comment
+    comment = "exists"
+    return user_exists, comment
 
 
 def get_all_users() -> list[Type[User]]:
