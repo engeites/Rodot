@@ -1,43 +1,12 @@
-from aiogram import types
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.callback_data import CallbackData
+import asyncio
+from aiogram import types, Dispatcher
+from aiogram.dispatcher.filters import Text
 
 from app.keyboards.main_keyboards import categories_keyboard
 from app.keyboards.profile import profile_keyboard
-from app.keyboards.inline.bookmarks import add_bookmark_keyboard
-from app.database.tips_crud import get_all_tips, get_tip_by_id
 
-from app.utils.form_newborn_contents import newborn_section_introduction
+from aiogram.utils.exceptions import BotBlocked
 
-
-callback_data = CallbackData('articles', 'id')
-
-
-async def newborn_care_intro(message: types.Message):
-    mark = InlineKeyboardMarkup()
-
-    tips = get_all_tips()
-    for tip in tips:
-        mark.add(InlineKeyboardButton(
-            text=tip.header,
-            callback_data=callback_data.new(str(tip.id))
-        ))
-
-    await message.answer(newborn_section_introduction(), reply_markup=mark)
-
-async def callbacks(call: types.CallbackQuery, callback_data: dict):
-    post_id = callback_data["id"]
-    article = get_tip_by_id(post_id)
-    text = article.header
-    text += "\n\n"
-    text += article.tip
-    text += "\n\n"
-    tags = article.tags
-
-    for tag in tags:
-        text += " #" + tag.name
-
-    await call.message.answer(text, reply_markup=add_bookmark_keyboard(article.id))
 
 
 async def profile_menu(message: types.Message):
@@ -75,3 +44,22 @@ Wake the baby up every two hours to feed them, even if they are sleeping soundly
 Rub brandy on the baby's gums to reduce fever.
 Feed the baby solids before six months old to help them sleep better at night"""
     await message.answer(text)
+
+
+async def error_bot_blocked(update: types.Update, exception: BotBlocked):
+    # TODO: Придумать и добавить обработку ботом блокировки
+    # Update: объект события от Telegram. Exception: объект исключения
+    # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
+    print(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")
+
+    # Такой хэндлер должен всегда возвращать True,
+    # если дальнейшая обработка не требуется.
+    return True
+
+
+
+def register_user_handlers(dp: Dispatcher):
+    dp.register_errors_handler(error_bot_blocked, exception=BotBlocked)
+    dp.register_message_handler(profile_menu, Text(equals="My Profile"))
+    dp.register_message_handler(main_menu, Text(equals="Go to main menu"))
+    dp.register_message_handler(bad_tips, Text(equals="Bad Tips"))

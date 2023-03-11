@@ -7,7 +7,7 @@ from app.database.user_crud import create_user
 
 
 async def send_welcome(message: types.Message):
-    print(message.from_user.id)
+    user_id = message.from_user.id
     created_at = datetime.datetime.now()
     user, comment = create_user(user_id, created_at)
 

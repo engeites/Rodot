@@ -16,7 +16,6 @@ from app.utils.form_newborn_contents import newborn_section_introduction
 
 callback_data = CallbackData('articles', 'id')
 
-
 async def newborn_care_intro(message: types.Message):
     mark = InlineKeyboardMarkup()
 
@@ -40,7 +39,7 @@ async def callbacks(call: types.CallbackQuery, callback_data: dict):
     tags = article.tags
 
     for tag in tags:
-        text += " #" + tag.name
+        text += " #" + tag.name.strip()
 
     await call.message.answer(text, reply_markup=add_bookmark_keyboard(article.id))
 
