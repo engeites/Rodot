@@ -2,7 +2,10 @@ import datetime
 
 from aiogram import types
 from aiogram import Dispatcher
+
+from aiogram.dispatcher.filters import Text
 from app.keyboards.main_keyboards import categories_keyboard, initial_keyboard
+from app.keyboards.age_select_keyboard import ages_keyboard
 from app.database.user_crud import create_user
 
 
@@ -37,5 +40,12 @@ Thank you for using Parenting Tips bot, and happy parenting!
 """
     await message.answer(text, reply_markup=reply_kb)
 
+
+async def show_ages_keyboard(message: types.Message):
+    await message.answer("Please choose suitable age", reply_markup=ages_keyboard())
+
+
+
 def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(send_welcome, commands=['start'])
+    dp.register_message_handler(show_ages_keyboard, Text(equals='Choose age'))
