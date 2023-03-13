@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from app.keyboards.main_keyboards import categories_keyboard
+from app.keyboards.main_keyboards import main_keyboard
 from app.keyboards.profile import profile_keyboard
 
 from app.database.tips_crud import get_all_tips, get_tip_by_id

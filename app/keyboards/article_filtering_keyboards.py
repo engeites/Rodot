@@ -11,11 +11,21 @@ def ages_keyboard() -> ReplyKeyboardMarkup:
     m_12_15 = KeyboardButton('12-15 months')
     m_15_18 = KeyboardButton('15-18 months')
     for_my_child = KeyboardButton('For my child')
-    back = KeyboardButton('Back')
+    back = KeyboardButton('Go to Main')
 
     mark.add(m_0_3, m_3_6)
     mark.add(m_6_9, m_9_12)
     mark.add(m_12_15, m_15_18)
     mark.add(for_my_child, back)
+
+    return mark
+
+
+def categories_keyboard() -> ReplyKeyboardMarkup:
+    mark = ReplyKeyboardMarkup(resize_keyboard=True)
+    mark.add(KeyboardButton('Health and Security'), KeyboardButton('Feeding'))
+    mark.add(KeyboardButton('Sleeping and Schedule'), KeyboardButton('Developmental Activities'))
+    mark.add(KeyboardButton('Books and Toys'), KeyboardButton('Outdated Advice'))
+    mark.add(KeyboardButton("Go to Main"))
 
     return mark

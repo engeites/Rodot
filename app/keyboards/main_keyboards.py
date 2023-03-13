@@ -12,7 +12,7 @@ def initial_keyboard():
     return kb
 
 
-def categories_keyboard():
+def main_keyboard():
 
     # create a custom keyboard
     custom_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -21,7 +21,7 @@ def categories_keyboard():
     my_profile_btn = KeyboardButton('My Profile')
     newborn_care_btn = KeyboardButton('Newborn Care')
     feeding_tips_btn = KeyboardButton('Prenatal Preparation')
-    developmental_activities_btn = KeyboardButton('Developmental Activities')
+    developmental_activities_btn = KeyboardButton('Choose Age')
     health_safety_btn = KeyboardButton('Health & Safety')
     bad_tips_btn = KeyboardButton('Bad Tips')
 

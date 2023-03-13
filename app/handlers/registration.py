@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.keyboards.main_keyboards import categories_keyboard
+from app.keyboards.main_keyboards import main_keyboard
 
 from app.database.user_crud import add_child
 
@@ -76,7 +76,7 @@ async def city_set(message: types.Message, state: FSMContext):
     )
     if success:
         await message.answer(f"You have updated info: day of birth: {user_data['birth_date']}, sex: {user_data['sex']},"
-                             f"city: {city}", reply_markup=categories_keyboard())
+                             f"city: {city}", reply_markup=main_keyboard())
         await state.finish()
     else:
         await message.answer(f"Error occured")

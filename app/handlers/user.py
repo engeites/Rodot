@@ -2,7 +2,7 @@ import asyncio
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
-from app.keyboards.main_keyboards import categories_keyboard
+from app.keyboards.main_keyboards import main_keyboard
 from app.keyboards.profile import profile_keyboard
 
 from aiogram.utils.exceptions import BotBlocked
@@ -21,7 +21,7 @@ async def profile_menu(message: types.Message):
 async def main_menu(message: types.Message):
     await message.answer(
         "Welcome to main menu",
-        reply_markup=categories_keyboard()
+        reply_markup=main_keyboard()
     )
 
 async def bad_tips(message: types.Message):
