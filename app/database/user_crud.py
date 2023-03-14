@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from typing import List, Type
 from .models import User, Child, Bookmark
@@ -119,7 +120,20 @@ def get_my_bookmarks(user_id: int):
 
 def delete_user(user_id: int) -> None:
     session = Session()
-    user = session.query(User).filter(User.id == user_id).first()
-    session.delete(user)
-    session.commit()
-    session.close()
+    try:
+        session.begin()
+        # Get the user model
+        user = session.query(User).filter_by(User.telegram_user_id == user_id).first()
+
+        # Delete related entries in other tables
+        session.query(Bookmark).filter_by(Bookmark.user_id == user.id).delete()
+        session.query(Child).filter_by(Child.parent_id == user.id).delete()
+        session.query(User).filter_by(User.id == user.id).delete()
+
+    except IntegrityError as e:
+        session.rollback()
+        # Log the error here
+
+    finally:
+        session.close()
+        # Log successfully deleted user

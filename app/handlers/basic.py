@@ -95,4 +95,4 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(show_ages_keyboard, Text(equals='Choose Age'), state="*")
     dp.register_message_handler(get_age, state=AgeAndTheme.age)
     dp.register_message_handler(get_category, Text(equals=options), state=AgeAndTheme.category)
-    dp.register_message_handler(go_to_main, state="*")
+    dp.register_message_handler(go_to_main, Text(equals="Go to Main"), state="*")

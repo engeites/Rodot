@@ -7,7 +7,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from app.keyboards.main_keyboards import main_keyboard
 
 from app.database.user_crud import add_child
-
+from app.utils.validators import validate_date
 class ProfileUpdate():
     def __init__(self, birth_date, sex, city):
         self.birth_date = birth_date
@@ -19,10 +19,6 @@ class ProfileInfo(StatesGroup):
     birth_date = State()
     sex = State()
     city = State()
-
-
-def validate_date(given_date: str) -> datetime:
-    return datetime.now()
 
 
 def validate_sex(given_sex: str) -> str | bool:
@@ -47,6 +43,7 @@ async def birthday_set(message: types.Message, state: FSMContext):
     given_date = message.text
     datetime_date = validate_date(given_date)
     if not datetime_date:
+        await message.answer("Date you just input is incorrect. Please try again or tap /cancel")
         return
     await state.update_data(birth_date=datetime_date)
     await state.set_state(ProfileInfo.sex.state)
@@ -59,7 +56,7 @@ async def sex_set(message: types.Message, state: FSMContext):
         return
     await state.update_data(sex=final_sex)
     await state.set_state(ProfileInfo.city.state)
-    await message.answer("Please input the name of your city")
+    await message.answer("Please input the name of your city. Send /cancel command to cancel the process")
 
 
 async def city_set(message: types.Message, state: FSMContext):
@@ -81,9 +78,16 @@ async def city_set(message: types.Message, state: FSMContext):
     else:
         await message.answer(f"Error occured")
 
+
+async def cancel_questionnaire(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
+                         "as it will make your experience with me much easier")
+
 def register_registry_handlers(dp: Dispatcher):
     dp.register_message_handler(profile_start, Text(equals="Get a profile"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_message_handler(sex_set, state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)
+    dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')
 

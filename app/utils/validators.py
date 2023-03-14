@@ -9,6 +9,19 @@ def validate_city(given_city: str) -> str | bool:
     return given_city
 
 
+def validate_date(date: str) -> datetime | bool:
+    formats = ('%d.%m.%Y', '%m.%d.%Y', '%d-%m-%Y', '%m-%d-%Y')
+
+    for format in formats:
+        try:
+            date_obj = datetime.strptime(date, format)
+            return date_obj
+        except ValueError:
+            pass
+
+    return False
+
+
 def validate_age(age: str) -> int | bool:
     try:
         valid_age = int(age)
