@@ -2,7 +2,7 @@ import asyncio
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
-from app.keyboards.main_keyboards import main_keyboard
+from app.keyboards.main_keyboards import main_keyboard_registered
 from app.keyboards.profile import profile_keyboard
 
 from aiogram.utils.exceptions import BotBlocked
@@ -21,7 +21,7 @@ async def profile_menu(message: types.Message):
 async def main_menu(message: types.Message):
     await message.answer(
         "Welcome to main menu",
-        reply_markup=main_keyboard()
+        reply_markup=main_keyboard_registered()
     )
 
 async def bad_tips(message: types.Message):
@@ -60,6 +60,6 @@ async def error_bot_blocked(update: types.Update, exception: BotBlocked):
 
 def register_user_handlers(dp: Dispatcher):
     dp.register_errors_handler(error_bot_blocked, exception=BotBlocked)
-    dp.register_message_handler(profile_menu, Text(equals="My Profile"))
-    dp.register_message_handler(main_menu, Text(equals="Go to main menu"))
-    dp.register_message_handler(bad_tips, Text(equals="Bad Tips"))
+    dp.register_message_handler(profile_menu, Text(equals="В профиль"))
+    dp.register_message_handler(main_menu, Text(equals="На главную"))
+    dp.register_message_handler(bad_tips, Text(equals="Вредные советы"))

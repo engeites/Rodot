@@ -3,7 +3,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from app.keyboards.main_keyboards import main_keyboard
+from app.keyboards.main_keyboards import main_keyboard_registered
 from app.keyboards.profile import profile_keyboard
 
 from app.database.tips_crud import get_all_tips, get_tip_by_id
@@ -52,6 +52,6 @@ async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
 
 
 def register_articles_handlers(dp: Dispatcher):
-    dp.register_message_handler(newborn_care_intro, Text(equals="Newborn Care"))
+    dp.register_message_handler(newborn_care_intro, Text(equals="Уход за новорожденными"))
     dp.register_callback_query_handler(callbacks, callback_data.filter())
     dp.register_callback_query_handler(save_to_bookmarks, cb.filter())

@@ -15,8 +15,9 @@ class User(Base):
     paid = Column(Boolean, default=False)
     subscription_end = Column(DateTime)
     referral_id = Column(Integer)
+    blocked_bot = Column(Boolean)
     children = relationship('Child', backref='parent', lazy=False)
-    bookmarks = relationship('Bookmark', back_populates='user')
+    bookmarks = relationship('Bookmark', uselist=False, back_populates='user')
 
 tags_association_table = Table(
     'tags_association', Base.metadata,
@@ -44,6 +45,8 @@ class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
+    start_age = Column(Integer)
+    end_age = Column(Integer)
     tips = relationship("ParentingTip", secondary=tags_association_table, back_populates="tags", lazy=False)
 
 

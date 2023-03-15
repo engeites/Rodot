@@ -7,10 +7,10 @@ def newborn_care_keyboard():
     newborn_kb = ReplyKeyboardMarkup(resize_keyboard=True)
 
     # create buttons for each option
-    bathing_tips_btn = KeyboardButton('Bathing Tips')
-    diapering_basics_btn = KeyboardButton('Diapering Basics')
-    soothing_techniques_btn = KeyboardButton('Soothing Techniques')
-    common_concerns_btn = KeyboardButton('Common Concerns')
+    bathing_tips_btn = KeyboardButton('Купание')
+    diapering_basics_btn = KeyboardButton('Гигиена и подгузники')
+    soothing_techniques_btn = KeyboardButton('Плач и успокоение')
+    common_concerns_btn = KeyboardButton('Разное')
 
 
     # add buttons to the custom keyboard

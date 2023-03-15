@@ -29,7 +29,8 @@ def all_bookmarks_keyboard(user_id: int):
     bookmarks = user_crud.get_my_bookmarks(user_id)
 
     tip_id_list = []
-
+    if len(tip_id_list) == 0:
+        return False
     for bookmark in bookmarks:
         tip_id_list.append(bookmark.bookmarked_tip_id)
 
