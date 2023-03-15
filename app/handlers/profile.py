@@ -1,5 +1,4 @@
-import aiogram
-from aiogram import types
+from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
@@ -37,7 +36,7 @@ async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
 
     await call.message.answer(text)
 
-def register_profile_handlers(dp: aiogram.Dispatcher):
+def register_profile_handlers(dp: Dispatcher):
     dp.register_message_handler(my_child, Text(equals="Мой ребёнок"))
     dp.register_message_handler(get_my_bookmarks, Text(equals="Сохранённые статьи"))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())

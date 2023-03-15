@@ -6,7 +6,7 @@ from aiogram.utils.callback_data import CallbackData
 from app.keyboards.main_keyboards import main_keyboard_registered
 from app.keyboards.profile import profile_keyboard
 
-from app.database.tips_crud import get_all_tips, get_tip_by_id
+from app.database.tips_crud import get_all_tips, get_tip_by_id, get_tips_by_multiple_tags
 from app.database import user_crud
 
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard
@@ -16,10 +16,14 @@ from app.utils.form_newborn_contents import newborn_section_introduction
 
 callback_data = CallbackData('articles', 'id')
 
-async def newborn_care_intro(message: types.Message):
+async def health_and_security_tips(message: types.Message):
     mark = InlineKeyboardMarkup()
 
-    tips = get_all_tips()
+    tag_list = ['newborn_care', "health"]
+
+    # tips = get_all_tips()
+
+    tips = get_tips_by_multiple_tags(tag_list)
     for tip in tips:
         mark.add(InlineKeyboardButton(
             text=tip.header,
@@ -52,6 +56,6 @@ async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
 
 
 def register_articles_handlers(dp: Dispatcher):
-    dp.register_message_handler(newborn_care_intro, Text(equals="Уход за новорожденными"))
+    dp.register_message_handler(health_and_security_tips, Text(equals="Здоровье и гигиена"))
     dp.register_callback_query_handler(callbacks, callback_data.filter())
     dp.register_callback_query_handler(save_to_bookmarks, cb.filter())

@@ -1,9 +1,9 @@
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, func, and_
 from typing import List
-from .models import ParentingTip, Tag
+from .models import ParentingTip, Tag, tags_association_table
 from .db import engine
 
 from app.utils.validators import get_tags_from_str
@@ -40,7 +40,7 @@ def create_new_article(article_data: dict):
     tag_list = get_tags_from_str(article_data['tags'])
 
     for tag_name in tag_list:
-        tag = Tag(name=tag_name)
+        tag = Tag(name=tag_name.strip())
         tip.tags.append(tag)
         db.add(tag)
     db.add(tip)
@@ -70,6 +70,38 @@ def get_all_tips() -> List[ParentingTip]:
     tips = session.query(ParentingTip).all()
     session.close()
     return tips
+
+
+def get_tips_by_multiple_tags(tags_list: list):
+    session = Session()
+    #
+    # query = (
+    #     session.query(ParentingTip).
+    #     join(tags_association_table).join(Tag).
+    #     filter(Tag.c.name.in_(tags_list)).
+    #     group_by(ParentingTip.c.id).
+    #     having(func.count(Tag.c.id) >= len(tags_list))
+    # )
+    #
+    # query = (
+    #     session.query(ParentingTip).
+    #     join(tags_association_table).join(Tag).
+    #     filter(and_(*(Tag.name == tag for tag in tags_list)))
+    # )
+
+    query = session.query(ParentingTip). \
+        join(ParentingTip.tags). \
+        filter(Tag.name.in_(tags_list)). \
+        group_by(ParentingTip.id). \
+        having(func.count(Tag.id) == len(tags_list))
+
+    tips_by_tags = query.all()
+    print(tips_by_tags)
+    print(str(query.statement))
+
+    for i in tips_by_tags:
+        print(i)
+    return tips_by_tags
 
 
 def get_tips_by_tag(tag: str):
