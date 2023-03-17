@@ -72,35 +72,25 @@ def get_all_tips() -> List[ParentingTip]:
     return tips
 
 
-def get_tips_by_multiple_tags(tags_list: list):
+def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
     session = Session()
-    #
-    # query = (
-    #     session.query(ParentingTip).
-    #     join(tags_association_table).join(Tag).
-    #     filter(Tag.c.name.in_(tags_list)).
-    #     group_by(ParentingTip.c.id).
-    #     having(func.count(Tag.c.id) >= len(tags_list))
-    # )
-    #
-    # query = (
-    #     session.query(ParentingTip).
-    #     join(tags_association_table).join(Tag).
-    #     filter(and_(*(Tag.name == tag for tag in tags_list)))
-    # )
-
+    print(tags_list)
+    # This query adds usage of useful_from_day and useful_until_day
     query = session.query(ParentingTip). \
         join(ParentingTip.tags). \
         filter(Tag.name.in_(tags_list)). \
+        filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
         group_by(ParentingTip.id). \
         having(func.count(Tag.id) == len(tags_list))
+    #
+    # query = session.query(ParentingTip). \
+    #     join(ParentingTip.tags). \
+    #     filter(Tag.name.in_(tags_list)). \
+    #     group_by(ParentingTip.id). \
+    #     having(func.count(Tag.id) == len(tags_list))
+    print(f"looking for articles with tags: {tags_list}, for babies from {start_age} to {end_age} days old")
 
     tips_by_tags = query.all()
-    print(tips_by_tags)
-    print(str(query.statement))
-
-    for i in tips_by_tags:
-        print(i)
     return tips_by_tags
 
 

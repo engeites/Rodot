@@ -1,17 +1,40 @@
+from datetime import datetime
+
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
 
+import app.database.models
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 
 from app.database import user_crud, tips_crud
-
-from app.texts import bookmark_texts
+from app.utils.validators import calculate_age_in_days
+from app.texts import bookmark_texts, profile_texts
 
 async def my_child(message: types.Message):
-    user = user_crud.get_user_by_tg_id(message.from_user.id)
-    child = user.children
 
-    await message.answer(child)
+    def get_readable_date(birth_date: datetime) -> str:
+         return birth_date.strftime("%d.%m.%Y")
+
+    sex_options = {
+        'male': 'мальчик',
+        'female': 'девочка'
+    }
+
+    user = user_crud.get_user_by_tg_id(message.from_user.id)
+    children = user.children
+
+    if children:  # check if there are any children
+        child = children[0]  # get the first child in the list
+
+        text = profile_texts.my_child.format(
+            get_readable_date(child.age),
+            calculate_age_in_days(child.age),
+            sex_options[child.sex]
+        )
+    else:
+        text = "You have no registered children"
+
+    await message.answer(text)
 
 
 async def get_my_bookmarks(message: types.Message):

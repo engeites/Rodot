@@ -29,14 +29,13 @@ async def create_bot():
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher(bot, storage=MemoryStorage())
 
+    register_admin_hanlders(dp)
     register_user_handlers(dp)
     register_profile_handlers(dp)
     register_info_handlers(dp)
-    register_basic_handlers(dp)
-    register_admin_hanlders(dp)
     register_registry_handlers(dp)
     register_articles_handlers(dp)
-
+    register_basic_handlers(dp)
     await dp.start_polling()
 
 

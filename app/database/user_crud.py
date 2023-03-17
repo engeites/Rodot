@@ -6,8 +6,6 @@ from typing import List, Type
 from .models import User, Child, Bookmark
 from .db import engine
 
-from app.utils.validators import calculate_age_in_days
-
 
 Session = sessionmaker(bind=engine)
 
@@ -73,26 +71,27 @@ def update_user(user_id: int, field: str, new_value) -> User:
 
 
 def add_child(user_id: int, birth_date: datetime, sex: str):
-    try:
-        db = Session()
-        user = get_user_by_tg_id(user_id)
+    # try:
+    # TODO: Если юзер вручную вобьет команду запускающую этот хэндлер, то сможет создать ещё одну запись в базе с ребенком.
+    #   нужно проверять есть ли уже ребенок у юзера и если да, возвращать отписку с приглашением изменить данные в профиле
+    db = Session()
+    user = get_user_by_tg_id(user_id)
 
-        age_in_days = calculate_age_in_days(birth_date)
-        child = Child(
-            age=age_in_days,
-            sex=sex,
-            parent=user
-        )
+    child = Child(
+        age=birth_date,
+        sex=sex,
+        parent=user
+    )
 
-        db.add(child)
-        user.children.append(child)
-        db.commit()
-        db.refresh(user)
-        db.close()
-        return child
-    except:
-        print("Something bad happened when adding child")
-        return False
+    db.add(child)
+    user.children.append(child)
+    db.commit()
+    db.refresh(user)
+    db.close()
+    return child
+    # except:
+    #     print("Something bad happened when adding child")
+    #     return False
 
 
 def add_bookmark(user_id: int, tip_id: int):
@@ -117,6 +116,23 @@ def get_my_bookmarks(user_id: int):
     session.close()
     return bookmarks
 
+
+def get_user_child(user_id: int):
+    session = Session()
+    user = session.query(User).filter(User.telegram_user_id == user_id).first()
+
+    if user:
+        # get children's age and sex for the user ID
+        children_info = session.query(Child.age, Child.sex).filter(Child.parent_id == user.id).first()
+        return children_info
+    else:
+        print("User not found.")
+
+
+def check_if_user_passed_reg(user_id: int) -> bool:
+    session = Session()
+    reg_passed = session.query(User.passed_basic_reg).filter(User.telegram_user_id == user_id).first()
+    return reg_passed[0]
 
 def delete_user(user_id: int) -> None:
     session = Session()

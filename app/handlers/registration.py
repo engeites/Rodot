@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.keyboards.main_keyboards import main_keyboard_registered
+from app.keyboards.main_keyboards import main_keyboard_registered, main_keyboard_unregistered
 
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
 from app.texts import registration_texts
@@ -86,17 +86,17 @@ async def city_set(message: types.Message, state: FSMContext):
         user_data['birth_date'],
         user_data['sex'],
     )
-    if success:
-        await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered())
-        await state.finish()
-    else:
-        await message.answer(f"Error occured")
-
-
-async def cancel_questionnaire(message: types.Message, state: FSMContext):
+    # if success:
+    await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered())
     await state.finish()
-    await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
-                         "as it will make your experience with me much easier")
+    # else:
+    #     await message.answer(f"Error occured")
+#
+#
+# async def cancel_questionnaire(message: types.Message, state: FSMContext):
+#     await state.finish()
+#     await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
+#                          "as it will make your experience with me much easier", reply_markup=main_keyboard_unregistered())
 
 
 
@@ -105,5 +105,4 @@ def register_registry_handlers(dp: Dispatcher):
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)
-    dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')
-
+    # dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')

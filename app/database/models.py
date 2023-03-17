@@ -12,12 +12,13 @@ class User(Base):
     telegram_user_id = Column(String, nullable=False)
     city = Column(String)
     created_at = Column(DateTime, nullable=False)
+    passed_basic_reg = Column(Boolean, default=False)
     paid = Column(Boolean, default=False)
     subscription_end = Column(DateTime)
     referral_id = Column(Integer)
     blocked_bot = Column(Boolean)
     children = relationship('Child', backref='parent', lazy=False)
-    bookmarks = relationship('Bookmark', uselist=False, back_populates='user')
+    bookmarks = relationship('Bookmark', back_populates='user')
 
 tags_association_table = Table(
     'tags_association', Base.metadata,
@@ -28,7 +29,7 @@ tags_association_table = Table(
 class Child(Base):
     __tablename__ = 'children'
     id = Column(Integer, primary_key=True)
-    age = Column(Integer)
+    age = Column(DateTime)
     sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
 
@@ -58,6 +59,8 @@ class ParentingTip(Base):
     header = Column(String, nullable=False)
     tip = Column(String, nullable=False)
     age_in_days = Column(String, nullable=False)
+    useful_from_day = Column(Integer)
+    useful_until_day = Column(Integer)
     created_at = Column(DateTime)
     tags = relationship("Tag", secondary=tags_association_table, back_populates="tips", lazy=False)
 
