@@ -8,15 +8,15 @@ from app.keyboards.profile import profile_keyboard
 
 from app.texts.main_menu import main_menu_registered, main_menu_unregistered
 
-
-
-async def profile_menu(message: types.Message):
-    await message.answer(
-        "Welcome to profile menu. Here you can make your work with me much easier! "
-        "I highly recommend to fill in some information about the baby and yourself, so I can give you right what "
-        "you need.",
-        reply_markup=profile_keyboard()
-    )
+#
+#
+# async def profile_menu(message: types.Message):
+#     await message.answer(
+#         "Welcome to profile menu. Here you can make your work with me much easier! "
+#         "I highly recommend to fill in some information about the baby and yourself, so I can give you right what "
+#         "you need.",
+#         reply_markup=profile_keyboard()
+#     )
 
 
 async def main_menu(message: types.Message):
@@ -60,6 +60,6 @@ async def error_bot_blocked(update: types.Update, exception: BotBlocked):
 
 def register_user_handlers(dp: Dispatcher):
     dp.register_errors_handler(error_bot_blocked, exception=BotBlocked)
-    dp.register_message_handler(profile_menu, Text(equals="В профиль"))
+    # dp.register_message_handler(profile_menu, Text(equals="В профиль"))
     dp.register_message_handler(main_menu, Text(equals="В меню"))
     dp.register_message_handler(bad_tips, Text(equals="Вредные советы"))

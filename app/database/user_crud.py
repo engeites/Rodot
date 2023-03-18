@@ -71,24 +71,28 @@ def update_user(user_id: int, field: str, new_value) -> User:
 
 
 def add_child(user_id: int, birth_date: datetime, sex: str):
-    # try:
-    # TODO: Если юзер вручную вобьет команду запускающую этот хэндлер, то сможет создать ещё одну запись в базе с ребенком.
-    #   нужно проверять есть ли уже ребенок у юзера и если да, возвращать отписку с приглашением изменить данные в профиле
     db = Session()
-    user = get_user_by_tg_id(user_id)
+    try:
+        # TODO: Если юзер вручную вобьет команду запускающую этот хэндлер, то сможет создать ещё одну запись в базе с ребенком.
+        #   нужно проверять есть ли уже ребенок у юзера и если да, возвращать отписку с приглашением изменить данные в профиле
 
-    child = Child(
-        age=birth_date,
-        sex=sex,
-        parent=user
-    )
+        user = get_user_by_tg_id(user_id)
 
-    db.add(child)
-    user.children.append(child)
-    db.commit()
-    db.refresh(user)
-    db.close()
-    return child
+        child = Child(
+            age=birth_date,
+            sex=sex,
+            parent=user
+        )
+
+        db.add(child)
+        user.children.append(child)
+        user.passed_basic_reg = True
+        db.commit()
+        db.refresh(user)
+        return child
+    finally:
+        db.close()
+
     # except:
     #     print("Something bad happened when adding child")
     #     return False

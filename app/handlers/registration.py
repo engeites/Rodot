@@ -9,7 +9,7 @@ from app.keyboards.main_keyboards import main_keyboard_registered, main_keyboard
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
 from app.texts import registration_texts
 
-from app.database.user_crud import add_child
+from app.database import user_crud
 from app.utils.validators import validate_date
 
 from app.keyboards.inline import child_sex
@@ -41,9 +41,15 @@ def validate_city(given_city: str) -> str | bool:
 
 
 async def profile_start(message: types.Message, state: FSMContext):
-    await message.answer(registration_texts.start_registration)
-    await state.set_state(ProfileInfo.birth_date.state)
+    child_exists = user_crud.get_user_child(message.from_user.id)
 
+    if not child_exists:
+        print(child_exists) # (datetime.datetime(2023, 3, 16, 0, 0), 'male')
+        await message.answer(registration_texts.start_registration)
+        await state.set_state(ProfileInfo.birth_date.state)
+
+    else:
+        await message.answer(registration_texts.already_have_child)
 
 async def birthday_set(message: types.Message, state: FSMContext):
     given_date = message.text
@@ -63,15 +69,6 @@ async def sex_set(call: types.CallbackQuery, callback_data: dict, state: FSMCont
     await state.update_data(sex=final_sex)
     await state.set_state(ProfileInfo.city.state)
     await call.message.answer(registration_texts.input_city)
-#
-# async def sex_set(message: types.Message, state: FSMContext):
-#     given_sex = message.text
-#     final_sex = validate_sex(given_sex)
-#     if not final_sex:
-#         return
-#     await state.update_data(sex=final_sex)
-#     await state.set_state(ProfileInfo.city.state)
-#     await message.answer("Please input the name of your city. Send /cancel command to cancel the process")
 
 
 async def city_set(message: types.Message, state: FSMContext):
@@ -81,7 +78,7 @@ async def city_set(message: types.Message, state: FSMContext):
         return
 
     user_data = await state.get_data()
-    success = add_child(
+    success = user_crud.add_child(
         message.from_user.id,
         user_data['birth_date'],
         user_data['sex'],
@@ -93,16 +90,17 @@ async def city_set(message: types.Message, state: FSMContext):
     #     await message.answer(f"Error occured")
 #
 #
-# async def cancel_questionnaire(message: types.Message, state: FSMContext):
-#     await state.finish()
-#     await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
-#                          "as it will make your experience with me much easier", reply_markup=main_keyboard_unregistered())
+async def cancel_questionnaire(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
+                         "as it will make your experience with me much easier", reply_markup=main_keyboard_unregistered())
 
 
 
 def register_registry_handlers(dp: Dispatcher):
+    dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')
     dp.register_message_handler(profile_start, Text(equals="Заполнить профиль"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)
-    # dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')
+
