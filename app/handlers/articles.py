@@ -54,14 +54,14 @@ async def callbacks(call: types.CallbackQuery, callback_data: dict):
     for tag in tags:
         text += " #" + tag.name.strip()
 
-    await call.message.answer(text, reply_markup=add_bookmark_keyboard(article.id))
+    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
 
 
 async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
     user_id = call.message.chat.id
     article_id = int(callback_data['tip_id'])
     user_crud.add_bookmark(user_id, article_id)
-    await call.message.answer("Successfully added new bookmark")
+    await call.message.answer("Добавлено в сохранённые. Вы можете найти эту статью быстрее через меню профиля если вы его открыли.")
 
 
 def register_articles_handlers(dp: Dispatcher):

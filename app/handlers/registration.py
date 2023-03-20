@@ -3,9 +3,10 @@ from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
+from aiogram.types import CallbackQuery
 
-from app.keyboards.main_keyboards import main_keyboard_registered, main_keyboard_unregistered
-
+# from app.keyboards.main_keyboards import main_keyboard_registered
+from app.keyboards.inline.main_kb_inline import main_kb_unregistered, main_kb_registered
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
 from app.texts import registration_texts
 
@@ -13,6 +14,11 @@ from app.database import user_crud
 from app.utils.validators import validate_date
 
 from app.keyboards.inline import child_sex
+
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+
+cancel_kb = InlineKeyboardMarkup().add(InlineKeyboardButton(text='Отмена', callback_data='Отмена'))
 
 class ProfileUpdate():
     def __init__(self, birth_date, sex, city):
@@ -34,22 +40,23 @@ def validate_sex(given_sex: str) -> str | bool:
     return False
 
 def validate_city(given_city: str) -> str | bool:
+    # TODO: Remake this function
     options = ["moscow", "saint petersburg", "rostov", "stavropol", "omsk", "tomsk", "pyatigorsk"]
     if given_city.lower() not in options:
         return False
     return given_city
 
 
-async def profile_start(message: types.Message, state: FSMContext):
-    child_exists = user_crud.get_user_child(message.from_user.id)
+async def profile_start(call: types.CallbackQuery, state: FSMContext):
+    child_exists = user_crud.get_user_child(call.from_user.id)
 
     if not child_exists:
         print(child_exists) # (datetime.datetime(2023, 3, 16, 0, 0), 'male')
-        await message.answer(registration_texts.start_registration)
+        await call.message.edit_text(registration_texts.start_registration, reply_markup=cancel_kb)
         await state.set_state(ProfileInfo.birth_date.state)
 
     else:
-        await message.answer(registration_texts.already_have_child, reply_markup=main_keyboard_registered())
+        await call.message.edit_text(registration_texts.already_have_child, reply_markup=main_kb_registered)
 
 async def birthday_set(message: types.Message, state: FSMContext):
     given_date = message.text
@@ -84,22 +91,21 @@ async def city_set(message: types.Message, state: FSMContext):
         user_data['sex'],
     )
     # if success:
-    await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered())
+    await message.answer(registration_texts.reg_finished, reply_markup=main_kb_registered)
     await state.finish()
     # else:
     #     await message.answer(f"Error occured")
 #
 #
-async def cancel_questionnaire(message: types.Message, state: FSMContext):
+async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):
     await state.finish()
-    await message.answer("Cancelled the questionnaire. No information was saved. However, we highly recommend finishing the process"
-                         "as it will make your experience with me much easier", reply_markup=main_keyboard_unregistered())
+    await call.message.edit_text(registration_texts.cancel_registration, reply_markup=main_kb_unregistered)
 
 
 
 def register_registry_handlers(dp: Dispatcher):
-    dp.register_message_handler(cancel_questionnaire,  commands=['cancel'], state='*')
-    dp.register_message_handler(profile_start, Text(equals="Заполнить профиль"), state='*')
+    dp.register_callback_query_handler(cancel_questionnaire,  Text(equals='Отмена'), state='*')
+    dp.register_callback_query_handler(profile_start, Text(equals="Заполнить профиль"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)

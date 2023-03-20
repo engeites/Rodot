@@ -6,6 +6,7 @@ from aiogram.dispatcher.filters import Text
 import app.database.models
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.profile import profile_keyboard
+from app.keyboards.inline.profile_kb_inline import profile_kb
 
 from app.database import user_crud, tips_crud
 from app.utils.validators import calculate_age_in_days
@@ -15,6 +16,12 @@ from app.texts import bookmark_texts, profile_texts
 async def profile_menu(message: types.Message):
     await message.answer(profile_texts.profile_introduction,
         reply_markup=profile_keyboard()
+    )
+
+
+async def profile_menu_inline(call: types.CallbackQuery):
+    await call.message.edit_text(profile_texts.profile_introduction,
+        reply_markup=profile_kb
     )
 
 async def my_child(message: types.Message):
@@ -68,6 +75,7 @@ async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
 
 def register_profile_handlers(dp: Dispatcher):
     dp.register_message_handler(profile_menu, Text(equals="В профиль"))
+    dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
     dp.register_message_handler(my_child, Text(equals="Мой ребёнок"))
     dp.register_message_handler(get_my_bookmarks, Text(equals="Сохранённые статьи"))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())

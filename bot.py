@@ -11,7 +11,7 @@ from app.handlers.articles import register_articles_handlers
 from app.handlers.admin import register_admin_hanlders
 from app.handlers.profile import register_profile_handlers
 from app.handlers.user import register_user_handlers
-
+from app.handlers.test import  register_test_handlers
 
 from app.config import API_TOKEN
 
@@ -29,6 +29,7 @@ async def create_bot():
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher(bot, storage=MemoryStorage())
 
+    register_test_handlers(dp)
     register_admin_hanlders(dp)
     register_user_handlers(dp)
     register_profile_handlers(dp)

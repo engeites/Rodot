@@ -12,11 +12,15 @@ def add_bookmark_keyboard(tip_id):
     mark = InlineKeyboardMarkup()
 
     add_bookmark = InlineKeyboardButton(
-        text="Save to bookmarks",
+        text="Добавить в сохранённые",
         callback_data=cb.new(tip_id=tip_id)
     )
+    go_to_main = InlineKeyboardButton(
+        text="На главную",
+        callback_data="На главную"
+    )
 
-    mark.add(add_bookmark)
+    mark.add(add_bookmark, go_to_main)
     return mark
 
 
