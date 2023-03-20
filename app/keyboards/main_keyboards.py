@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
+from app.config import CATEGORIES
 
 def initial_keyboard():
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -37,17 +38,25 @@ def main_keyboard_registered():
     # create a custom keyboard
     custom_keyboard = ReplyKeyboardMarkup(resize_keyboard=True)
 
-    # create buttons for each option
     my_profile_btn = KeyboardButton('В профиль')
-    newborn_care_btn = KeyboardButton('Здоровье и гигиена')
-    feeding_tips_btn = KeyboardButton('Игры и развитие')
-    developmental_activities_btn = KeyboardButton('Полезные покупки')
-    help_btn = KeyboardButton('Вредные советы')
+    custom_keyboard.add(my_profile_btn)
+
+    for category in CATEGORIES:
+        custom_keyboard.add(category)
+
+    # create buttons for each option
+    # my_profile_btn = KeyboardButton('В профиль')
+    # newborn_care_btn = KeyboardButton('Здоровье и гигиена')
+    # feeding_tips_btn = KeyboardButton('Игры и развитие')
+    # developmental_activities_btn = KeyboardButton('Полезные покупки')
+    help_btn = KeyboardButton('Помощь')
     contact_btn = KeyboardButton('Выбрать возраст')
 
-    # add buttons to the custom keyboard
-    custom_keyboard.add(my_profile_btn, newborn_care_btn)
-    custom_keyboard.add(feeding_tips_btn, developmental_activities_btn)
     custom_keyboard.add(help_btn, contact_btn)
+
+    # # add buttons to the custom keyboard
+    # custom_keyboard.add(my_profile_btn, newborn_care_btn)
+    # custom_keyboard.add(feeding_tips_btn, developmental_activities_btn)
+    # custom_keyboard.add(help_btn, contact_btn)
 
     return custom_keyboard

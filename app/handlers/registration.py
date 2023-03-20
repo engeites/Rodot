@@ -49,7 +49,7 @@ async def profile_start(message: types.Message, state: FSMContext):
         await state.set_state(ProfileInfo.birth_date.state)
 
     else:
-        await message.answer(registration_texts.already_have_child)
+        await message.answer(registration_texts.already_have_child, reply_markup=main_keyboard_registered())
 
 async def birthday_set(message: types.Message, state: FSMContext):
     given_date = message.text

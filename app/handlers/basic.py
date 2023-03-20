@@ -16,7 +16,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
-from app.texts.welcome_message import welcome
+from app.texts.basic import welcome, our_philosophy
+from app.texts.article_search_texts import category_not_found
+
+from app.config import CATEGORIES
 
 callback_data = CallbackData('articles', 'id')
 
@@ -25,15 +28,15 @@ class AgeAndTheme(StatesGroup):
     until_day = State()
     category = State()
 
-
-options = [
-    "Здоровье и гигиена",
-    "Кормление",
-    "Сон и режим",
-    "Игры и развитие",
-    "Книги и игрушки",
-    "Вредные советы"
-]
+#
+# options = [
+#     "Здоровье и гигиена",
+#     "Кормление",
+#     "Сон и режим",
+#     "Игры и развитие",
+#     "Книги и игрушки",
+#     "Вредные советы"
+# ]
 
 
 async def send_welcome(message: types.Message):
@@ -44,7 +47,7 @@ async def send_welcome(message: types.Message):
     if comment == 'exists':
         reply_kb = main_keyboard_registered()
         text = """Well hello again, you sick fuck"""
-        await message.answer(text, reply_markup=reply_kb)
+        await message.answer(welcome, reply_markup=initial_keyboard())
         return
 
     reply_kb = initial_keyboard()
@@ -74,15 +77,13 @@ async def get_age(call: types.CallbackQuery, callback_data: dict, state: FSMCont
 
 async def get_category(message: types.Message, state:FSMContext):
     given_category = message.text
-    print(given_category)
-    # TODO: validate categories too, CRITICAL
+    if given_category not in CATEGORIES:
+        await message.answer(category_not_found, reply_markup=categories_keyboard())
+        return
 
     await state.update_data(category=given_category)
     state_data = await state.get_data()
 
-    # TODO:
-    #   Найти способ перевести выборанный возраст в формате 0-3 или 6-9 в тэг, либо сделать такие тэги вместо "новорожденный".
-    #   Потом добавить сюда функцию вывода списка статей по списку тэгов
     # Search for article that suits the given age and category
     tips = tips_crud.get_tips_by_multiple_tags([state_data['category']], state_data['from_day'], state_data['until_day'])
 
@@ -114,17 +115,21 @@ async def go_to_main(message: types.Message, state: FSMContext):
 #     await message.answer("Please choose suitable age", reply_markup=ages_keyboard())
 #
 
+async def send_our_philosophy(message: types.Message):
+    await message.answer(our_philosophy, reply_markup=initial_keyboard())
+
 async def void_messages(message: types.Message):
     print("Got this message that does not suit other handlers: ")
     print(message.text)
+    await message.answer("на " + message.text + " у меня нет ответа")
 
 
 def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(send_welcome, commands=['start'])
     dp.register_message_handler(show_ages_keyboard, Text(equals='Выбрать возраст'), state="*")
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
-    # dp.register_message_handler(get_age, state=AgeAndTheme.age)
-    dp.register_message_handler(get_category, Text(equals=options), state=AgeAndTheme.category)
+    dp.register_message_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
+    dp.register_message_handler(send_our_philosophy, Text(equals="Наша философия"))
 
     dp.register_message_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_message_handler(go_to_main, commands=['cancel'], state="*")

@@ -26,6 +26,6 @@ def categories_keyboard() -> ReplyKeyboardMarkup:
     mark.add(KeyboardButton('Здоровье и гигиена'), KeyboardButton('Кормление'))
     mark.add(KeyboardButton('Сон и режим'), KeyboardButton('Игры и развитие'))
     mark.add(KeyboardButton('Книги и игрушки'), KeyboardButton('Вредные советы'))
-    mark.add(KeyboardButton("На главную"))
+    mark.add(KeyboardButton('Полезные покупки'), KeyboardButton("На главную"))
 
     return mark

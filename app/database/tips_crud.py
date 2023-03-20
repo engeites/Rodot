@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text, func, and_
 from typing import List
-from .models import ParentingTip, Tag, tags_association_table
+from .models import ParentingTip, Tag
 from .db import engine
 
 from app.utils.validators import get_tags_from_str
