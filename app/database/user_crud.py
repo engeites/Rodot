@@ -26,8 +26,8 @@ def get_user_by_tg_id(user_id: int) -> User:
 
 def create_user(telegram_user_id: int, created_at: datetime) -> tuple[User, str]:
     session = Session()
-    user_exists = get_user_by_tg_id(telegram_user_id)
-    if not user_exists:
+    user_exists: User = get_user_by_tg_id(telegram_user_id)
+    if not user_exists or not user_exists.passed_basic_reg:
         comment = "new"
         user = User(telegram_user_id=telegram_user_id, created_at=created_at)
         session.add(user)
