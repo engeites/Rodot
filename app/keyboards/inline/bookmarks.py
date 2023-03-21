@@ -16,8 +16,8 @@ def add_bookmark_keyboard(tip_id):
         callback_data=cb.new(tip_id=tip_id)
     )
     go_to_main = InlineKeyboardButton(
-        text="На главную",
-        callback_data="На главную"
+        text="Назад",
+        callback_data="Назад"
     )
 
     mark.add(add_bookmark, go_to_main)

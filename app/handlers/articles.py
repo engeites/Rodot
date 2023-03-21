@@ -27,10 +27,6 @@ async def health_and_security_tips(message: types.Message):
     child_age_in_days: int = calculate_age_in_days(user_child[0])
 
     age_range: dict = calc_age_range_from_int(child_age_in_days)
-    # Here I only have child's birthday
-    #   It seems like no, I store kid's age in days for some reason. Need to remake that and store birthday.
-    #   I will convert birthday to a number (age in days)
-    #   And then need to get the age range, like if age in days = 5, then age range = 1:30, if age = 189 then age range = 180:270
 
     tips = get_tips_by_multiple_tags(tag_list, age_range['start'], age_range['end'])
     for tip in tips:
@@ -38,23 +34,10 @@ async def health_and_security_tips(message: types.Message):
             text=tip.header,
             callback_data=callback_data.new(str(tip.id))
         ))
+        print(str(tip.id))
 
     await message.answer(newborn_section_introduction(), reply_markup=mark)
 
-
-async def callbacks(call: types.CallbackQuery, callback_data: dict):
-    post_id = callback_data["id"]
-    article = get_tip_by_id(post_id)
-    text = article.header
-    text += "\n\n"
-    text += article.tip
-    text += "\n\n"
-    tags = article.tags
-
-    for tag in tags:
-        text += " #" + tag.name.strip()
-
-    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
 
 
 async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
@@ -66,5 +49,5 @@ async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
 
 def register_articles_handlers(dp: Dispatcher):
     dp.register_message_handler(health_and_security_tips, Text(equals="Здоровье и гигиена"))
-    dp.register_callback_query_handler(callbacks, callback_data.filter())
+    # dp.register_callback_query_handler(callbacks, callback_data.filter())
     dp.register_callback_query_handler(save_to_bookmarks, cb.filter())

@@ -27,6 +27,7 @@ from app.texts.article_search_texts import category_not_found
 from app.config import CATEGORIES
 from app.handlers.articles import callback_data
 # callback_data = CallbackData('articles', 'id')
+from app.keyboards.inline.bookmarks import add_bookmark_keyboard
 
 class AgeAndTheme(StatesGroup):
     from_day = State()
@@ -118,6 +119,21 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
         await call.message.edit_text(main_menu_unregistered, reply_markup=main_kb_unregistered)
 
 
+async def send_article_text(call: types.CallbackQuery, callback_data: dict):
+    print(call.data)
+    post_id = callback_data["id"]
+    article = tips_crud.get_tip_by_id(post_id)
+    text = article.header
+    text += "\n\n"
+    text += article.tip
+    text += "\n\n"
+    tags = article.tags
+
+    for tag in tags:
+        text += " #" + tag.name.strip()
+
+    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
+
 async def send_our_philosophy(call: types.CallbackQuery):
     await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
 
@@ -134,6 +150,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(go_to_main, cb.filter(from_day='back'), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
+    dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))
