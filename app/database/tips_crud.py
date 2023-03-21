@@ -23,18 +23,19 @@ def create_tip(header: str, tip_text: str, tag_names: List[str], age_in_days: in
     db.refresh(tip)
     return tip
 
-def create_new_article(article_data: dict):
+def create_new_article(article_data: dict, from_day: int, until_day: int):
     db = Session()
     current_date = datetime.now()
 
     tip_header = article_data['header']
     tip_body = article_data['tip']
-    tip_age = int(article_data['age_in_days'])
 
     tip = ParentingTip(
         header=tip_header,
         tip=tip_body,
-        age_in_days=tip_age,
+        age_in_days=0,
+        useful_from_day=from_day,
+        useful_until_day=until_day,
         created_at=current_date
     )
     tag_list = get_tags_from_str(article_data['tags'])
@@ -76,19 +77,26 @@ def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
     session = Session()
     print(tags_list)
     # This query adds usage of useful_from_day and useful_until_day
+    # query = session.query(ParentingTip). \
+    #     join(ParentingTip.tags). \
+    #     filter(Tag.name.in_(tags_list)). \
+    #     filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
+    #     group_by(ParentingTip.id). \
+    #     having(func.count(Tag.id) == len(tags_list))
+    #
+
     query = session.query(ParentingTip). \
         join(ParentingTip.tags). \
         filter(Tag.name.in_(tags_list)). \
         filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
-        group_by(ParentingTip.id). \
-        having(func.count(Tag.id) == len(tags_list))
-    #
+        distinct(ParentingTip.id)
+
     # query = session.query(ParentingTip). \
     #     join(ParentingTip.tags). \
     #     filter(Tag.name.in_(tags_list)). \
     #     group_by(ParentingTip.id). \
     #     having(func.count(Tag.id) == len(tags_list))
-    print(f"looking for articles with tags: {tags_list}, for babies from {start_age} to {end_age} days old")
+    # print(f"looking for articles with tags: {tags_list}, for babies from {start_age} to {end_age} days old")
 
     tips_by_tags = query.all()
     return tips_by_tags

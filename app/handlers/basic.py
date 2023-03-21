@@ -76,7 +76,9 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
     state_data = await state.get_data()
 
     # Search for article that suits the given age and category
-    tips = tips_crud.get_tips_by_multiple_tags([state_data['category']], state_data['from_day'], state_data['until_day'])
+    tips = tips_crud.get_tips_by_multiple_tags([state_data['category']],
+                                               int(state_data['from_day']),
+                                               int(state_data['until_day']))
 
 
     mark = InlineKeyboardMarkup()

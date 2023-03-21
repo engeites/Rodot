@@ -23,6 +23,21 @@ def add_bookmark_keyboard(tip_id):
     mark.add(add_bookmark, go_to_main)
     return mark
 
+def already_bookmarked_keyboard():
+    mark = InlineKeyboardMarkup()
+
+    add_bookmark = InlineKeyboardButton(
+        text="В сохранённых",
+        callback_data=cb.new(tip_id='0')
+    )
+    go_to_main = InlineKeyboardButton(
+        text="Назад",
+        callback_data="Назад"
+    )
+
+    mark.add(add_bookmark, go_to_main)
+    return mark
+
 
 def all_bookmarks_keyboard(user_id: int):
     # TODO: I think that it might be a bad idea to use database crud
@@ -33,7 +48,7 @@ def all_bookmarks_keyboard(user_id: int):
     bookmarks = user_crud.get_my_bookmarks(user_id)
 
     tip_id_list = []
-    if len(tip_id_list) == 0:
+    if len(bookmarks) == 0:
         return False
     for bookmark in bookmarks:
         tip_id_list.append(bookmark.bookmarked_tip_id)
@@ -49,3 +64,5 @@ def all_bookmarks_keyboard(user_id: int):
         ))
 
     return mark
+
+already_bookmarked_kb = already_bookmarked_keyboard()

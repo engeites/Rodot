@@ -5,6 +5,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
 
+from app.keyboards.inline.ages import ages_keyboard, cb
+
 class Article(StatesGroup):
     header = State()
     tip = State()
@@ -13,7 +15,7 @@ class Article(StatesGroup):
 
 
 async def add_new_article(message: types.Message, state: FSMContext):
-
+    await state.finish()
     # This should filter users and respond to admin only
 
     await message.answer("Adding new article to knowledge base.\n\n First, input a header")
@@ -38,8 +40,24 @@ async def set_tags(message: types.Message, state: FSMContext):
     tags = message.text
     await state.update_data(tags=tags)
     await state.set_state(Article.age_in_days.state)
-    await message.answer("Got the tags list. Now please send the age when this article is useful")
+    await message.answer("Got the tags list. Now please send the age when this article is useful",
+                         reply_markup=ages_keyboard)
 
+
+async def set_age_inline(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    from_day = callback_data['from_day']
+    until_day = callback_data['until_day']
+
+    article_data = await state.get_data()
+
+    success = create_new_article(article_data, from_day, until_day)
+
+    if not success:
+        await call.message.edit_text("Something went wrong. Article was not saved")
+        return
+
+    await state.finish()
+    await call.message.edit_text("New article is successfully saved")
 
 async def set_age(message: types.Message, state: FSMContext):
     age = message.text
@@ -64,8 +82,9 @@ async def set_age(message: types.Message, state: FSMContext):
 
 
 def register_admin_hanlders(dp: Dispatcher):
-    dp.register_message_handler(add_new_article, commands=['new'])
+    dp.register_message_handler(add_new_article, commands=['new'], state='*')
     dp.register_message_handler(set_header, state=Article.header.state)
     dp.register_message_handler(set_body, state=Article.tip.state)
     dp.register_message_handler(set_tags, state=Article.tags.state)
-    dp.register_message_handler(set_age, state=Article.age_in_days.state)
+    # dp.register_message_handler(set_age, state=Article.age_in_days.state)
+    dp.register_callback_query_handler(set_age_inline, cb.filter(), state=Article.age_in_days.state)
