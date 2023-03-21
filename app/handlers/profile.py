@@ -24,7 +24,7 @@ async def profile_menu_inline(call: types.CallbackQuery):
         reply_markup=profile_kb
     )
 
-async def my_child(message: types.Message):
+async def my_child(call: types.CallbackQuery):
 
     def get_readable_date(birth_date: datetime) -> str:
          return birth_date.strftime("%d.%m.%Y")
@@ -34,7 +34,7 @@ async def my_child(message: types.Message):
         'female': 'девочка'
     }
 
-    user = user_crud.get_user_by_tg_id(message.from_user.id)
+    user = user_crud.get_user_by_tg_id(call.from_user.id)
     children = user.children
 
     if children:  # check if there are any children
@@ -48,7 +48,7 @@ async def my_child(message: types.Message):
     else:
         text = "You have no registered children"
 
-    await message.answer(text)
+    await call.message.edit_text(text)
 
 
 async def get_my_bookmarks(message: types.Message):
@@ -76,6 +76,7 @@ async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
 def register_profile_handlers(dp: Dispatcher):
     dp.register_message_handler(profile_menu, Text(equals="В профиль"))
     dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
-    dp.register_message_handler(my_child, Text(equals="Мой ребёнок"))
+    dp.register_callback_query_handler(my_child, Text(equals="Мой ребёнок"))
+    # dp.register_message_handler(my_child, Text(equals="Мой ребёнок"))
     dp.register_message_handler(get_my_bookmarks, Text(equals="Сохранённые статьи"))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())

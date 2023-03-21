@@ -29,7 +29,7 @@ async def create_bot():
     bot = Bot(token=API_TOKEN)
     dp = Dispatcher(bot, storage=MemoryStorage())
 
-    register_test_handlers(dp)
+    # register_test_handlers(dp)
     register_admin_hanlders(dp)
     register_user_handlers(dp)
     register_profile_handlers(dp)

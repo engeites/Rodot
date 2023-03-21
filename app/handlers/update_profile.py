@@ -35,6 +35,8 @@ async def new_city_name(message: types.Message, state: FSMContext):
         await state.finish()
     else:
         await message.answer(f"I cannot find given city")
+
+
 def register_info_handlers(dp: Dispatcher):
     dp.register_message_handler(update_info, Text(equals="Обновить данные"))
     dp.register_callback_query_handler(update_city, cb.filter())

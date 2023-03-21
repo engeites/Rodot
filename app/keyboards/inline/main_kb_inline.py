@@ -20,18 +20,21 @@ def main_keyboard_unregistered():
 
 def main_keyboard_registered():
 
+    btn_list = CATEGORIES.copy()
+    btn_list.append('Выбрать возраст')
+
     my_profile_btn = InlineKeyboardButton(text='В профиль', callback_data='В профиль')
-    help_btn = InlineKeyboardButton(text='Справка', callback_data='Справка')
-    contact_us_btn = InlineKeyboardButton(text='Связаться с нами', callback_data='Связаться с нами')
+    help_btn = InlineKeyboardButton(text='Помощь', callback_data='Помощь')
+    contact_us_btn = InlineKeyboardButton(text='Контакты', callback_data='Контакты')
 
     reg_main_kb = InlineKeyboardMarkup(row_width=2)
-
-    main_buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in CATEGORIES]
+    main_buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in btn_list]
 
     reg_main_kb.add(my_profile_btn)
 
     reg_main_kb.add(*main_buttons)
-    # reg_main_kb.add((help_btn, contact_us_btn))
+    # reg_main_kb.add(choose_age)
+    reg_main_kb.add(help_btn, contact_us_btn)
     return reg_main_kb
 
 
