@@ -150,9 +150,11 @@ def register_basic_handlers(dp: Dispatcher):
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, cb.filter(from_day='back'), state=AgeAndTheme.from_day)
+
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
+    dp.register_callback_query_handler(send_article_text, callback_data.filter(), state='*')
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))

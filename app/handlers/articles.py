@@ -18,28 +18,30 @@ from app.keyboards.inline.bookmarks import cb
 from app.utils.form_newborn_contents import newborn_section_introduction
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
+from app.config import CATEGORIES
+
 callback_data = CallbackData('articles', 'id')
 
-async def health_and_security_tips(message: types.Message):
+async def show_tips_for_category(call: types.CallbackQuery):
     mark = InlineKeyboardMarkup()
 
-    tag_list = ['новорожденные', "здоровье"]
+    tag_list = [call.data]
 
     # tips = get_all_tips()
-    user_child = user_crud.get_user_child(message.from_user.id)
+    user_child = user_crud.get_user_child(call.from_user.id)
     child_age_in_days: int = calculate_age_in_days(user_child[0])
-
+    print(user_child)
+    print(child_age_in_days)
     age_range: dict = calc_age_range_from_int(child_age_in_days)
-
+    print(age_range)
     tips = get_tips_by_multiple_tags(tag_list, age_range['start'], age_range['end'])
     for tip in tips:
         mark.add(InlineKeyboardButton(
             text=tip.header,
             callback_data=callback_data.new(str(tip.id))
         ))
-        print(str(tip.id))
 
-    await message.answer(newborn_section_introduction(), reply_markup=mark)
+    await call.message.edit_text(newborn_section_introduction(), reply_markup=mark)
 
 
 
@@ -58,7 +60,6 @@ async def already_saved(call: types.CallbackQuery, callback_data: dict):
     await call.answer('Статья уже была сохранена ранее, вы можете найти её в профиле. Удалить из сохранённых можно там же')
 
 def register_articles_handlers(dp: Dispatcher):
-    dp.register_message_handler(health_and_security_tips, Text(equals="Здоровье и гигиена"))
-    # dp.register_callback_query_handler(callbacks, callback_data.filter())
+    dp.register_callback_query_handler(show_tips_for_category, Text(equals=CATEGORIES))
     dp.register_callback_query_handler(already_saved, cb.filter(tip_id='0'), state="*")
     dp.register_callback_query_handler(save_to_bookmarks, cb.filter(), state="*")

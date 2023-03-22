@@ -44,17 +44,17 @@ def calculate_age_in_days(birth_date: datetime) -> int:
 
 
 def calc_age_range_from_int(age_in_days: int) -> dict:
-    if 1 <= age_in_days <= 90:
-        return {'start': 1, 'end': 90}
-    elif 91 <= age_in_days <= 180:
-        return {'start': 91, 'end': 180}
-    elif 181 <= age_in_days <= 270:
-        return {'start': 181, 'end': 270}
-    elif 271 <= age_in_days <= 360:
-        return {'start': 271, 'end': 360}
-    elif 361 <= age_in_days <= 450:
-        return {'start': 361, 'end': 450}
-    elif 451 <= age_in_days <= 540:
-        return {'start': 451, 'end': 540}
+    if 1 <= age_in_days <= 30:
+        return {'start': 1, 'end': 30}
+    elif 31 <= age_in_days <= 60:
+        return {'start': 31, 'end': 60}
+    elif 61 <= age_in_days <= 90:
+        return {'start': 61, 'end': 90}
+    elif 91 <= age_in_days <= 120:
+        return {'start': 91, 'end': 120}
+    elif 121 <= age_in_days <= 150:
+        return {'start': 121, 'end': 150}
+    elif 151 <= age_in_days <= 180:
+        return {'start': 151, 'end': 180}
     else:
         return {'error': 'out of range'}
