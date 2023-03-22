@@ -29,6 +29,8 @@ from app.handlers.articles import callback_data
 # callback_data = CallbackData('articles', 'id')
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard
 
+from app.handlers.articles import AgeAndCategory
+
 class AgeAndTheme(StatesGroup):
     from_day = State()
     until_day = State()
@@ -105,8 +107,6 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
 
 async def go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
     # await state.set_state(AgeAndTheme.category.state)
-    print("State data: ")
-    print(await state.get_data())
     await call.message.edit_text(choose_category, reply_markup=categories_kb)
 
 
@@ -154,7 +154,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
-    dp.register_callback_query_handler(send_article_text, callback_data.filter(), state='*')
+    dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))
