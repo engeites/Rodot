@@ -21,7 +21,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
-from app.texts.basic import welcome, our_philosophy
+from app.texts.basic import welcome, our_philosophy, help_message_reg, help_message_unreg
 from app.texts.article_search_texts import category_not_found
 
 from app.config import CATEGORIES
@@ -139,6 +139,12 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
 async def send_our_philosophy(call: types.CallbackQuery):
     await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
 
+async def send_help_message_reg(call: types.CallbackQuery):
+    await call.message.edit_text(help_message_reg, reply_markup=main_kb_registered)
+
+async def send_help_message_unreg(call: types.CallbackQuery):
+    await call.message.edit_text(help_message_unreg, reply_markup=main_kb_unregistered)
+
 async def void_messages(message: types.Message):
     print("Got this message that does not suit other handlers: ")
     print(message.text)
@@ -160,5 +166,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))
     # dp.register_message_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
+    dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
+    dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))
     # dp.register_message_handler(go_to_main, commands=['cancel'], state="*")
     dp.register_message_handler(void_messages)
