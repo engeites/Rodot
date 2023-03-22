@@ -21,7 +21,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
-from app.texts.basic import welcome, our_philosophy, help_message_reg, help_message_unreg
+from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
 from app.texts.article_search_texts import category_not_found
 
 from app.config import CATEGORIES
@@ -43,10 +43,10 @@ async def send_welcome(message: types.Message):
     user, comment = user_crud.create_user(user_id, created_at)
 
     if comment == 'exists':
-        await message.answer(welcome, reply_markup=main_kb_registered)
+        await message.answer(welcome_reg, reply_markup=main_kb_registered)
         return
 
-    await message.answer(welcome, reply_markup=initial_kb)
+    await message.answer(welcome_unreg, reply_markup=initial_kb)
 
 
 async def show_ages_keyboard(call: types.CallbackQuery, state: FSMContext):
@@ -125,8 +125,7 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
     print(call.data)
     post_id = callback_data["id"]
     article = tips_crud.get_tip_by_id(post_id)
-    text = article.header
-    text += "\n\n"
+    text = f"<b>{article.header}</b> \n\n"
     text += article.tip
     text += "\n\n"
     tags = article.tags
@@ -161,7 +160,8 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)
-    dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
+    # dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
+    dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))
     # dp.register_message_handler(go_to_main, Text(equals="На главную"), state="*")

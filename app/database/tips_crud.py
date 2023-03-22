@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import or_
 from sqlalchemy.sql import text, func, and_
 from typing import List
 from .models import ParentingTip, Tag
@@ -76,14 +77,6 @@ def get_all_tips() -> List[ParentingTip]:
 def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
     session = Session()
     print(tags_list)
-    # This query adds usage of useful_from_day and useful_until_day
-    # query = session.query(ParentingTip). \
-    #     join(ParentingTip.tags). \
-    #     filter(Tag.name.in_(tags_list)). \
-    #     filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
-    #     group_by(ParentingTip.id). \
-    #     having(func.count(Tag.id) == len(tags_list))
-    #
 
     query = session.query(ParentingTip). \
         join(ParentingTip.tags). \
@@ -91,15 +84,25 @@ def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
         filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
         distinct(ParentingTip.id)
 
-    # query = session.query(ParentingTip). \
-    #     join(ParentingTip.tags). \
-    #     filter(Tag.name.in_(tags_list)). \
-    #     group_by(ParentingTip.id). \
-    #     having(func.count(Tag.id) == len(tags_list))
-    # print(f"looking for articles with tags: {tags_list}, for babies from {start_age} to {end_age} days old")
-
     tips_by_tags = query.all()
     return tips_by_tags
+
+def search_tips(query_txt):
+    session = Session()
+
+    # split query into individual keywords
+    keywords = query_txt.split()
+
+    # create a list of filter conditions to search for each keyword
+    filter_conditions = [ParentingTip.tip.like(f'%{keyword}%') for keyword in keywords]
+
+    # combine the filter conditions with an OR operator
+    combined_filter = or_(*filter_conditions)
+
+    # query the database for articles matching the filter conditions
+    articles = session.query(ParentingTip).filter(combined_filter).all()
+
+    return articles
 
 
 def get_tips_by_tag(tag: str):

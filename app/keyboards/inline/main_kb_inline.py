@@ -40,7 +40,7 @@ def main_keyboard_registered():
 
 def show_categories():
 
-    cancel = InlineKeyboardButton(text='Отмена', callback_data='Отмена')
+    cancel = InlineKeyboardButton(text='На главную', callback_data='На главную')
 
     categories_kb = InlineKeyboardMarkup(row_width=2)
 

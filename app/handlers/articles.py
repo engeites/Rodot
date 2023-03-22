@@ -15,7 +15,7 @@ from app.keyboards.inline.main_kb_inline import main_kb_registered
 from app.database.tips_crud import get_all_tips, get_tip_by_id, get_tips_by_multiple_tags
 from app.database import user_crud
 
-from app.keyboards.inline.bookmarks import add_bookmark_keyboard, already_bookmarked_kb
+from app.keyboards.inline.bookmarks import add_bookmark_keyboard, already_bookmarked_kb, already_bookmarked_keyboard_from_search
 from app.keyboards.inline.bookmarks import cb
 
 from app.utils.form_newborn_contents import newborn_section_introduction
@@ -26,12 +26,6 @@ from app.config import CATEGORIES
 
 callback_data = CallbackData('articles', 'id')
 
-
-
-# Запускаем новую машину состояний
-# В ней храним возраст и категорию
-# show_tips_for_category запускает машину состояний
-# Если нажата кнопка назад, то формируем список статей заново исходя из данных в машине состояний
 
 class AgeAndCategory(StatesGroup):
     data = State()
@@ -91,13 +85,18 @@ async def to_main_menu(call: types.CallbackQuery, state: FSMContext):
     await call.message.edit_text("Возвращаемся в главное меню", reply_markup=main_kb_registered)
 
 async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
+
     with suppress(MessageNotModified):
-        print(callback_data)
+        if callback_data['place'] == 'search':
+            reply_markup = already_bookmarked_keyboard_from_search
+        elif callback_data['place'] == 'categories':
+            reply_markup = already_bookmarked_kb
+
         user_id = call.message.chat.id
         article_id = int(callback_data['tip_id'])
         user_crud.add_bookmark(user_id, article_id)
         await call.answer('Добавлено в сохранённые. Вы можете найти эту статью быстрее через меню профиля если вы его открыли.')
-        await call.message.edit_reply_markup(already_bookmarked_kb)
+        await call.message.edit_reply_markup(reply_markup)
 
 
 async def already_saved(call: types.CallbackQuery, callback_data: dict):

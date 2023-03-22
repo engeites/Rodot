@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
@@ -26,7 +27,7 @@ async def create_bot():
     )
     logger.error("Starting bot")
 
-    bot = Bot(token=API_TOKEN)
+    bot = Bot(token=API_TOKEN, parse_mode='HTML')
     dp = Dispatcher(bot, storage=MemoryStorage())
 
     # register_test_handlers(dp)
