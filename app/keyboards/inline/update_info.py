@@ -7,7 +7,7 @@ def edit_info_keyboard():
     mark = InlineKeyboardMarkup()
 
     city_button = InlineKeyboardButton(
-        text="Edit city",
+        text="Изменить город",
         callback_data=cb.new(field="city", alias="city")
     )
 

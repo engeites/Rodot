@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from app.handlers.registration import register_registry_handlers
-from app.handlers.update_profile import register_info_handlers
+from app.handlers.update_profile import register_update_info_handlers
 from app.handlers.basic import register_basic_handlers
 from app.handlers.articles import register_articles_handlers
 from app.handlers.admin import register_admin_hanlders
@@ -34,7 +34,7 @@ async def create_bot():
     register_admin_hanlders(dp)
     register_user_handlers(dp)
     register_profile_handlers(dp)
-    register_info_handlers(dp)
+    register_update_info_handlers(dp)
     register_registry_handlers(dp)
     register_articles_handlers(dp)
     register_basic_handlers(dp)

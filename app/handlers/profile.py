@@ -16,6 +16,8 @@ from app.keyboards.profile import profile_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
 
+from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
+
 from app.database import user_crud, tips_crud
 from app.utils.validators import calculate_age_in_days
 from app.texts import bookmark_texts, profile_texts
@@ -66,18 +68,18 @@ async def my_child(call: types.CallbackQuery):
 
 
 async def get_my_bookmarks(call: types.CallbackQuery):
-    print("I am here")
+
     user_id = call.from_user.id
     keyboard_with_bookmarks = all_bookmarks_keyboard(user_id)
     if not keyboard_with_bookmarks:
         await call.message.answer(bookmark_texts.no_bookmarks_found)
         return
-    await call.message.edit_text("Вот список сохранённых вами статей", reply_markup=keyboard_with_bookmarks)
+    await call.message.edit_text(list_of_found_articles, reply_markup=keyboard_with_bookmarks)
 
 
 async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
 
-    mark = InlineKeyboardMarkup()
+    mark = InlineKeyboardMarkup(row_width=1)
 
     mark.add(InlineKeyboardButton(
         text="< Назад к списку",
@@ -102,7 +104,7 @@ async def go_to_profile(call: types.CallbackQuery):
 
 
 async def start_search(call: types.CallbackQuery, state: FSMContext):
-    await call.message.edit_text("Please input keywords")
+    await call.message.edit_text(start_search_text)
     await state.set_state(SearchState.query.state)
 
 
@@ -118,13 +120,22 @@ async def search_for_articles(message: types.Message, state: FSMContext):
         redis_client.setex(query, 600, byte_string, )
         print('Did not find this query in REDIS')
 
+    if len(tip_list) == 0:
+        await message.answer(no_articles_found, reply_markup=profile_kb)
+        await state.finish()
+        return
+
     buttons = [InlineKeyboardButton(
         text=tip.header,
         callback_data=show_article_callback.new(str(tip.id))
     )
         for tip in tip_list]
-    mark = InlineKeyboardMarkup()
+
+
+    mark = InlineKeyboardMarkup(row_width=1)
     mark.add(*buttons)
+    mark.add(InlineKeyboardButton(text="Назад",
+                                  callback_data="В профиль"))
     await state.finish()
 
     # redis_client.set(query, tip_list)
@@ -146,6 +157,12 @@ async def load_article(call: CallbackQuery, callback_data: dict):
     with suppress(MessageNotModified):
         await call.message.edit_text(text, reply_markup=add_bookmark_go_back(article.id))
 
+
+async def my_city(call: types.CallbackQuery):
+    await call.answer('Раздел "мой город" находится в разработке. Скоро здесь вы сможете найти куда сходить с ребёнком, '
+                      'а также новые знакомства!')
+
+
 def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
     dp.register_callback_query_handler(my_child, Text(equals="Мой ребёнок"))
@@ -157,3 +174,5 @@ def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(start_search, Text(equals="Поиск по статьям"))
     dp.register_message_handler(search_for_articles, state=SearchState.query)
     dp.register_callback_query_handler(load_article, show_article_callback.filter())
+
+    dp.register_callback_query_handler(my_city, Text(equals="Мой город"))
