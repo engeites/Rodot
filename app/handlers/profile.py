@@ -2,6 +2,7 @@ from datetime import datetime
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 import app.database.models
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
@@ -42,7 +43,13 @@ async def my_child(call: types.CallbackQuery):
     else:
         text = "You have no registered children"
 
-    await call.message.edit_text(text)
+    mark = InlineKeyboardMarkup()
+    mark.add(InlineKeyboardButton(
+        text="В меню",
+        callback_data='В меню'
+    ))
+
+    await call.message.edit_text(text, reply_markup=mark)
 
 
 async def get_my_bookmarks(call: types.CallbackQuery):

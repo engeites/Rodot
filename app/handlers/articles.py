@@ -19,6 +19,7 @@ from app.keyboards.inline.bookmarks import add_bookmark_keyboard, already_bookma
 from app.keyboards.inline.bookmarks import cb
 
 from app.utils.form_newborn_contents import newborn_section_introduction
+from app.texts.article_search_texts import category_introduction
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
 from app.config import CATEGORIES
@@ -74,7 +75,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
         text="В меню",
         callback_data='В меню'
     ))
-    await call.message.edit_text(newborn_section_introduction(), reply_markup=mark)
+    await call.message.edit_text(category_introduction, reply_markup=mark)
 
 
 async def back_to_articles(call: types.CallbackQuery, state: FSMContext):
