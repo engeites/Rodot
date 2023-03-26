@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.config import AVAILABLE_AGES
+from app.config import AVAILABLE_AGES_initial
 cb = CallbackData("get_age", "from_day", "until_day")
 
 def ages_keyboard():
@@ -13,7 +13,7 @@ def ages_keyboard():
                                             until_day=age[2])
                                         )
 
-               for age in AVAILABLE_AGES]
+               for age in AVAILABLE_AGES_initial]
 
     cancel = InlineKeyboardButton(text="На главную", callback_data=cb.new(
         from_day='back',

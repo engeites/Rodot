@@ -1,3 +1,4 @@
+import datetime
 from contextlib import suppress
 
 from aiogram.utils.exceptions import MessageNotModified
@@ -20,6 +21,8 @@ from app.keyboards.inline.bookmarks import cb
 
 from app.utils.form_newborn_contents import newborn_section_introduction
 from app.texts.article_search_texts import category_introduction
+from app.texts.basic import child_too_old
+
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
 from app.config import CATEGORIES
@@ -47,6 +50,11 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
 
         age_range: dict = calc_age_range_from_int(child_age_in_days)
 
+        if age_range['error']:
+            await state.finish()
+            await call.message.edit_text(child_too_old)
+            return
+
         query_data = {
             'category': tag_list,
             'from_day': age_range['start'],
@@ -73,6 +81,8 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
 
 
 async def back_to_articles(call: types.CallbackQuery, state: FSMContext):
+    print('got this callback at: ')
+    print(datetime.datetime.now())
     data = await state.get_data()
 
     await show_tips_for_category(call, state=state, data=data)

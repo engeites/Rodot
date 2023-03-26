@@ -1,12 +1,15 @@
 import datetime
+import unicodedata
 
+from contextlib import suppress
 from aiogram import types
 from aiogram import Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
 from aiogram.dispatcher.filters import Text
-from app.keyboards.main_keyboards import main_keyboard_unregistered, initial_keyboard
+from aiogram.utils.exceptions import MessageNotModified
+
 from app.keyboards.inline.ages import ages_keyboard, cb
 from app.keyboards.inline.main_kb_inline import main_kb_registered
 
@@ -16,6 +19,8 @@ from app.keyboards.inline.main_kb_inline import initial_kb, main_kb_unregistered
 
 from app.database import user_crud
 from app.database import tips_crud
+
+from app.utils.validators import validate_category
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -64,15 +69,14 @@ async def get_age(call: types.CallbackQuery, callback_data: dict, state: FSMCont
 
 
 async def get_category(call: types.CallbackQuery, state:FSMContext):
-
-
     given_category = call.data
+    print(given_category)
     if given_category not in CATEGORIES:
         await call.message.edit_text(category_not_found, reply_markup=categories_kb)
         # TODO: Выше я вызвал kb_registered, но не факт что юзер на самом деле уже зарегистрирован
         return
 
-    await state.update_data(category=given_category)
+    await state.update_data(category=validate_category(given_category))
     print("Get category state data: ")
     print(await state.get_data())
     state_data = await state.get_data()
@@ -136,7 +140,8 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
     await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
 
 async def send_our_philosophy(call: types.CallbackQuery):
-    await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
+    with suppress(MessageNotModified):
+        await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
 
 async def send_help_message_reg(call: types.CallbackQuery):
     await call.message.edit_text(help_message_reg, reply_markup=main_kb_registered)
@@ -150,12 +155,39 @@ async def void_messages(message: types.Message):
     await message.answer("на " + message.text + " у меня нет ответа")
 
 
+async def show_prenatal_articles(call: types.CallbackQuery):
+    print("Showing prenatal articles")
+    print(call.data)
+    tips = tips_crud.get_tips_by_multiple_tags(['До родов'], 0, 0)
+
+    mark = InlineKeyboardMarkup()
+
+    for tip in tips:
+        mark.add(InlineKeyboardButton(
+            text=tip.header,
+            callback_data=callback_data.new(str(tip.id))
+        ))
+
+    mark.add(InlineKeyboardButton(
+        text="Назад",
+        callback_data="Назад"
+    ),
+        InlineKeyboardButton(
+            text="На главную",
+            callback_data="На главную"
+        ))
+
+    # Return list of articles in inline keyboard
+    await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
+    # await state.finish()
+
 def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(send_welcome, commands=['start'])
 
-    dp.register_callback_query_handler(show_ages_keyboard, Text(equals='Выбрать возраст'), state="*")
+    dp.register_callback_query_handler(show_ages_keyboard, Text(equals='🐾 Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, cb.filter(from_day='back'), state=AgeAndTheme.from_day)
 
+    dp.register_callback_query_handler(show_prenatal_articles, cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
@@ -163,7 +195,7 @@ def register_basic_handlers(dp: Dispatcher):
     # dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 
-    dp.register_callback_query_handler(send_our_philosophy, Text(equals="Наша философия"))
+    dp.register_callback_query_handler(send_our_philosophy, Text(equals="🧑🏻‍🎓 Наша философия"))
     # dp.register_message_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))

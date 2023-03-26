@@ -60,8 +60,8 @@ async def my_child(call: types.CallbackQuery):
 
     mark = InlineKeyboardMarkup()
     mark.add(InlineKeyboardButton(
-        text="В профиль",
-        callback_data='В профиль'
+        text="⬆️ В профиль",
+        callback_data='⬆️ В профиль'
     ))
 
     await call.message.edit_text(text, reply_markup=mark)
@@ -135,7 +135,7 @@ async def search_for_articles(message: types.Message, state: FSMContext):
     mark = InlineKeyboardMarkup(row_width=1)
     mark.add(*buttons)
     mark.add(InlineKeyboardButton(text="Назад",
-                                  callback_data="В профиль"))
+                                  callback_data="⬆️ В профиль"))
     await state.finish()
 
     # redis_client.set(query, tip_list)
@@ -164,15 +164,15 @@ async def my_city(call: types.CallbackQuery):
 
 
 def register_profile_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
-    dp.register_callback_query_handler(my_child, Text(equals="Мой ребёнок"))
+    dp.register_callback_query_handler(profile_menu_inline, Text(equals="⬆️ В профиль"))
+    dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=['< Назад к списку']))
-    dp.register_callback_query_handler(get_my_bookmarks, Text(equals=["Сохранённые статьи"]))
-    dp.register_callback_query_handler(go_to_profile, Text(equals=["В профиль"]))
+    dp.register_callback_query_handler(get_my_bookmarks, Text(equals=["📗 Сохранённые статьи"]))
+    dp.register_callback_query_handler(go_to_profile, Text(equals=["⬆️ В профиль"]))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())
 
-    dp.register_callback_query_handler(start_search, Text(equals="Поиск по статьям"))
+    dp.register_callback_query_handler(start_search, Text(equals="🔎 Поиск по статьям"))
     dp.register_message_handler(search_for_articles, state=SearchState.query)
     dp.register_callback_query_handler(load_article, show_article_callback.filter())
 
-    dp.register_callback_query_handler(my_city, Text(equals="Мой город"))
+    dp.register_callback_query_handler(my_city, Text(equals="🏙 Мой город"))

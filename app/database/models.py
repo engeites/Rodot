@@ -9,7 +9,7 @@ from .db import Base, engine
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    telegram_user_id = Column(String, nullable=False)
+    telegram_user_id = Column(String, nullable=False, unique=True)
     city = Column(String)
     created_at = Column(DateTime, nullable=False)
     passed_basic_reg = Column(Boolean, default=False)
@@ -17,6 +17,8 @@ class User(Base):
     subscription_end = Column(DateTime)
     referral_id = Column(Integer)
     blocked_bot = Column(Boolean)
+    last_seen = Column(DateTime)
+    is_banned = Column(Boolean)
     children = relationship('Child', backref='parent', lazy=False)
     bookmarks = relationship('Bookmark', back_populates='user')
 

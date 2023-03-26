@@ -105,7 +105,7 @@ async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):
 
 def register_registry_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(cancel_questionnaire,  Text(equals='Отмена'), state='*')
-    dp.register_callback_query_handler(profile_start, Text(equals="Заполнить профиль"), state='*')
+    dp.register_callback_query_handler(profile_start, Text(equals="📖 Заполнить профиль"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)

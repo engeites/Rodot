@@ -58,3 +58,7 @@ def calc_age_range_from_int(age_in_days: int) -> dict:
         return {'start': 151, 'end': 180}
     else:
         return {'error': 'out of range'}
+
+
+def validate_category(input_str: str) -> str:
+    return input_str[2:].strip()

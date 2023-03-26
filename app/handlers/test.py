@@ -30,5 +30,5 @@ async def go_back(call: CallbackQuery):
 
 def register_test_handlers(dp: Dispatcher):
     dp.register_message_handler(show_inline_profile_kb, commands=['test'])
-    dp.register_callback_query_handler(my_city, Text(equals="Мой город"))
+    dp.register_callback_query_handler(my_city, Text(equals="🏙 Мой город"))
     dp.register_callback_query_handler(go_back, Text(equals="back"))
