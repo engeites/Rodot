@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, subqueryload
 from sqlalchemy import or_
 from sqlalchemy.sql import text, func, and_
 from typing import List
@@ -104,6 +104,14 @@ def search_tips(query_txt):
 
     return articles
 
+
+def get_tip_with_media(tip_id: int):
+    db = Session()
+   # the ID of the ParentingTip you want to retrieve
+    tip_with_media = db.session.query(ParentingTip).options(subqueryload(ParentingTip.media)).filter_by(
+        id=tip_id).first()
+    
+    return tip_with_media
 
 def get_tips_by_tag(tag: str):
     db = Session()

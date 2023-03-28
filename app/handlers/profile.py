@@ -10,9 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
-import app.database.models
-from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard, add_bookmark_keyboard
-from app.keyboards.profile import profile_keyboard
+from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
 

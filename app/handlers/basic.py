@@ -44,9 +44,10 @@ class AgeAndTheme(StatesGroup):
 
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
+    print(user_id)
     created_at = datetime.datetime.now()
     user, comment = user_crud.create_user(user_id, created_at)
-
+    print(f"comment = {comment}")
     if comment == 'exists':
         await message.answer(welcome_reg, reply_markup=main_kb_registered)
         return
@@ -110,7 +111,12 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
 
 
 async def go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
+    print(state.get_state())
+    print(state.get_data())
+    if state:
+        await state.finish()
     # await state.set_state(AgeAndTheme.category.state)
+    # await call.message.edit_caption(choose_category, reply_markup=categories_kb)
     await call.message.edit_text(choose_category, reply_markup=categories_kb)
 
 
@@ -126,8 +132,8 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
 
 
 async def send_article_text(call: types.CallbackQuery, callback_data: dict):
-    print(call.data)
     post_id = callback_data["id"]
+
     article = tips_crud.get_tip_by_id(post_id)
     text = f"<b>{article.header}</b> \n\n"
     text += article.tip
@@ -136,7 +142,6 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
 
     for tag in tags:
         text += " #" + tag.name.strip()
-
     await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
 
 async def send_our_philosophy(call: types.CallbackQuery):
@@ -192,7 +197,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)
-    # dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
+    dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="🧑🏻‍🎓 Наша философия"))

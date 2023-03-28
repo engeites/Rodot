@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean, Enum
 from sqlalchemy.orm import relationship
 from .db import Base, engine
 
@@ -65,6 +65,14 @@ class ParentingTip(Base):
     useful_until_day = Column(Integer)
     created_at = Column(DateTime)
     tags = relationship("Tag", secondary=tags_association_table, back_populates="tips", lazy=False)
+    media = relationship("Media", backref="tip")
+
+class Media(Base):
+    __tablename__ = 'media'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    media_type = Column(Enum("photo", "video", name="media_types"), nullable=False)
+    media_id = Column(String, nullable=False)
+    tip_id = Column(Integer, ForeignKey('parenting_tips.id'))
 
 
 
