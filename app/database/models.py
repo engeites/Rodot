@@ -9,7 +9,7 @@ from .db import Base, engine
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    telegram_user_id = Column(String, nullable=False, unique=True)
+    telegram_user_id = Column(String, nullable=False)
     city = Column(String)
     created_at = Column(DateTime, nullable=False)
     passed_basic_reg = Column(Boolean, default=False)
@@ -31,6 +31,7 @@ tags_association_table = Table(
 class Child(Base):
     __tablename__ = 'children'
     id = Column(Integer, primary_key=True)
+    # Rename age to birthdate or birthday
     age = Column(DateTime)
     sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
@@ -74,6 +75,15 @@ class Media(Base):
     media_id = Column(String, nullable=False)
     tip_id = Column(Integer, ForeignKey('parenting_tips.id'))
 
+
+class DailyTip(Base):
+    __tablename__ = 'daily_tips'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    header = Column(String, nullable=False, unique=True)
+    body = Column(String, nullable=False)
+    age_in_days = Column(Integer, nullable=False)
+    created_at = Column(DateTime, default=datetime.now())
+    media = Column(String, nullable=True)
 
 
 class BadTip(Base):

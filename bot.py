@@ -1,9 +1,8 @@
 import asyncio
 import logging
 
-from aiogram import types
-from aiogram.dispatcher.webhook import SendMessage
-from aiohttp import web
+from app.database.daily_tips import send_daily_tips
+from app.utils.apschedule import scheduler, job_timezone, job_time
 
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -45,38 +44,15 @@ async def create_bot():
     register_registry_handlers(dp)
     register_articles_handlers(dp)
     register_basic_handlers(dp)
+
+    scheduler.add_job(send_daily_tips, 'cron', day_of_week='mon-sun', hour=job_time.hour, minute=job_time.minute,
+                      timezone=job_timezone, args=[bot])
+
     await dp.start_polling()
 
 
-def create_webhook_bot():
-    # Replace 'API_TOKEN' with your own bot token obtained from BotFather
-    bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
-    dp = Dispatcher(bot)
-
-    async def on_startup(app):
-        # Replace 'WEBHOOK_HOST' with your own hostname or IP address
-        await bot.set_webhook(f'https://WEBHOOK_HOST/{WEBHOOK_PATH}')
-
-    async def on_shutdown(app):
-        # Remove webhook upon shutdown
-        await bot.delete_webhook()
-
-    async def webhook(request):
-        if request.match_info.get('token') == API_TOKEN:
-            update = await request.json()
-            # Process update here
-            await dp.process_update(update)
-            return web.Response(text='OK')
-        return web.Response(text='Invalid token')
-
-    app = web.Application()
-    # Replace 'WEBHOOK_PATH' with your own webhook path
-    app.router.add_post(f'/token:{API_TOKEN}/{WEBHOOK_PATH}', webhook)
-
-    web.run_app(app, host=WEBHOOK_HOST, port=8443)
 
 if __name__ == '__main__':
-    # create_webhook_bot()
     asyncio.run(create_bot())
 
 

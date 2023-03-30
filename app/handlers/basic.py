@@ -138,10 +138,10 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
     text = f"<b>{article.header}</b> \n\n"
     text += article.tip
     text += "\n\n"
-    tags = article.tags
-
-    for tag in tags:
-        text += " #" + tag.name.strip()
+    # tags = article.tags
+    #
+    # for tag in tags:
+    #     text += " #" + tag.name.strip()
     await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
 
 async def send_our_philosophy(call: types.CallbackQuery):

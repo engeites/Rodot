@@ -161,12 +161,17 @@ async def my_city(call: types.CallbackQuery):
                       'а также новые знакомства!')
 
 
+async def day_by_day(call: types.CallbackQuery):
+    await call.answer('Подписка уже оформлена автоматически')
+
+
 def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(profile_menu_inline, Text(equals="⬆️ В профиль"))
     dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=['< Назад к списку']))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=["📗 Сохранённые статьи"]))
     dp.register_callback_query_handler(go_to_profile, Text(equals=["⬆️ В профиль"]))
+    dp.register_callback_query_handler(day_by_day, Text(equals=["🤳🏼 День за днём"]))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())
 
     dp.register_callback_query_handler(start_search, Text(equals="🔎 Поиск по статьям"))

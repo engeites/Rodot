@@ -143,7 +143,7 @@ def get_tips_by_tag(tag: str):
 def update_tip(tip_id: int, age_in_months: int, tip_text: str) -> ParentingTip:
     session = Session()
     tip = session.query(ParentingTip).filter(ParentingTip.id == tip_id).first()
-    tip.age_in_days = age_in_months
+    tip.age_range = age_in_months
     tip.tip_text = tip_text
     session.commit()
     session.refresh(tip)
