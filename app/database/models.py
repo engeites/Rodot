@@ -105,5 +105,13 @@ class ChildFriendlyPlace(Base):
     longitude = Column(Float, nullable=False)
 
 
+class UserArticle(Base):
+    __tablename__ = 'user_article'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey('users.id'))
+    article_id = Column(Integer, ForeignKey('parenting_tips.id'))
+    created_at = Column(DateTime, nullable=False)
+
+
 # Create the database tables
 Base.metadata.create_all(engine)

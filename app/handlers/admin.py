@@ -7,11 +7,17 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import PhotoSize
 
+from app.config import ADMINS
+from app.database.user_crud import get_active_users
+from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
 from app.database.daily_tips_crud import create_daily_tip
+from app.database import db_analytics
 
 from app.keyboards.inline.ages import ages_keyboard, cb
+from app.keyboards.inline.bookmarks import admin_statistics_cb, add_bookmark_keyboard
+
 
 # StatesGroup for normal articles
 class Article(StatesGroup):
@@ -145,15 +151,45 @@ async def pass_media(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+# Handlers to retrieve statistics
+async def get_statistics_by_article(call: types.CallbackQuery, callback_data: dict):
+    article_id = int(callback_data['tip_id'])
+    analytic_data: dict = db_analytics.get_article_statistics(article_id)
+
+    text = f"""
+    Статья была прочитана:
+    {analytic_data['today']} раз за сегодня;
+    {analytic_data['yesterday']} раз за вчера;
+    {analytic_data['last_week']} раз за 7 дней;
+    {analytic_data['last_month']} раз за 30 дней;
+    {analytic_data['total']} раз за всё время;
+    """
+
+    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article_id))
+
+
+async def get_active_users_statistics(message: types.Message):
+    time_range_today = get_hours_passed_today()
+    active_users_today = get_active_users('hours', time_range_today)
+    active_users_seven_days = get_active_users('days', 7)
+
+    text = f"""
+    За сегодня {active_users_today} пользователей выбирали категорию;
+    За 7 дней {active_users_today} пользователей выбирали категорию.
+    """
+
+    await message.answer(text)
+
+
 def register_admin_hanlders(dp: Dispatcher):
-    # States for creating normal ParentingTip
+    # Handlers for creating normal ParentingTip
     dp.register_message_handler(add_new_article, commands=['new'], state='*')
     dp.register_message_handler(set_header, state=Article.header.state)
     dp.register_message_handler(set_body, state=Article.tip.state)
     dp.register_message_handler(set_tags, state=Article.tags.state)
     dp.register_callback_query_handler(set_age_inline, cb.filter(), state=Article.age_range.state)
 
-    # States for creating DailyTip
+    # Handlers for creating DailyTip
     dp.register_message_handler(add_new_daily_article, commands=['new_daily'], state='*')
     dp.register_message_handler(header_input, state=DailyArticle.header)
     dp.register_message_handler(body_input, state=DailyArticle.body)
@@ -161,3 +197,6 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_message_handler(pass_media, commands=['media_pass'], state=DailyArticle.media)
     dp.register_message_handler(add_media_for_daily_tip, content_types=['photo'], state=DailyArticle.media)
 
+    # Handlers to retrieve analytics
+    dp.register_callback_query_handler(get_statistics_by_article, admin_statistics_cb.filter(), state='*')
+    dp.register_message_handler(get_active_users_statistics, commands=['active_users'], user_id=ADMINS)

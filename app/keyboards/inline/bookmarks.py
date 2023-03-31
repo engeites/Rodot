@@ -7,8 +7,9 @@ from app.database.models import ParentingTip
 
 cb = CallbackData("bookmark", "tip_id", 'place')
 bookmark_link_cb = CallbackData('link_to_tip', 'tip_id')
+admin_statistics_cb = CallbackData('tip_statistics', 'tip_id')
 
-def add_bookmark_keyboard(tip_id):
+def add_bookmark_keyboard(tip_id, admin: bool = False):
     mark = InlineKeyboardMarkup()
 
     add_bookmark = InlineKeyboardButton(
@@ -22,6 +23,16 @@ def add_bookmark_keyboard(tip_id):
     )
 
     mark.add(add_bookmark, go_to_main)
+
+    if admin:
+        add_bookmark = InlineKeyboardButton(
+            text="Посмотреть статистику",
+            callback_data=admin_statistics_cb.new(
+                tip_id=tip_id
+            )
+        )
+
+        mark.add(add_bookmark)
     return mark
 
 
@@ -68,7 +79,7 @@ def already_bookmarked_keyboard_from_search():
                              place='search')
     )
     go_to_main = InlineKeyboardButton(
-        text="В профиль",
+        text="⬆️ В профиль",
         callback_data="⬆️ В профиль"
     )
 

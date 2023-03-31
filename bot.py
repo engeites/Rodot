@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from app.database.daily_tips import send_daily_tips
+from app.database.daily_tips import send_daily_tips_to_all
 from app.utils.apschedule import scheduler, job_timezone, job_time
 
 from aiogram import Bot, Dispatcher
@@ -45,7 +45,7 @@ async def create_bot():
     register_articles_handlers(dp)
     register_basic_handlers(dp)
 
-    scheduler.add_job(send_daily_tips, 'cron', day_of_week='mon-sun', hour=job_time.hour, minute=job_time.minute,
+    scheduler.add_job(send_daily_tips_to_all, 'cron', day_of_week='mon-sun', hour=job_time.hour, minute=job_time.minute,
                       timezone=job_timezone, args=[bot])
 
     await dp.start_polling()

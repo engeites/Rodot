@@ -5,13 +5,14 @@ import aiogram
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, joinedload
 from app.database.models import DailyTip, Child, User, tags_association_table
+from . import user_crud
 
 from .db import engine
+from ..utils.validators import calculate_age_in_days
 
 Session = sessionmaker(bind=engine)
 
-async def send_daily_tips(bot: aiogram.Bot):
-    print('Send daily tips ran')
+async def send_daily_tips_to_all(bot: aiogram.Bot):
     session = Session()
 
     today = datetime.now().date()
@@ -36,3 +37,16 @@ async def send_daily_tips(bot: aiogram.Bot):
             await bot.send_message(chat_id=parent.telegram_user_id, text=final_message, parse_mode='HTML')
 
     session.close()
+
+
+def send_daily_tip_to_user(user_id: int):
+    session = Session()
+    user_child = user_crud.get_user_child(user_id)
+    user_child_birthday = user_child[0]
+    print(user_child, user_child_birthday)
+
+    age_in_days = calculate_age_in_days(user_child_birthday)
+
+    daily_tip = session.query(DailyTip).filter(DailyTip.age_in_days == age_in_days).first()
+    print(daily_tip)
+    return daily_tip

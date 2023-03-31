@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
@@ -157,3 +157,25 @@ def delete_user(user_id: int) -> None:
     finally:
         session.close()
         # Log successfully deleted user
+
+
+def update_user_last_seen(user_id):
+    session = Session()
+
+    user = session.query(User).filter_by(telegram_user_id=user_id).first()
+    user.last_seen = datetime.now()
+
+    session.commit()
+
+def get_active_users(hours_days: str, time_range: int) -> int:
+    session = Session()
+
+    now = datetime.now()
+    if hours_days == 'hours':
+        time_range = now - timedelta(hours=time_range)
+    elif hours_days == 'days':
+        time_range = now - timedelta(days=time_range)
+
+    # Query the database for active users
+    active_users = session.query(User).filter(User.last_seen >= time_range).all()
+    return len(active_users)

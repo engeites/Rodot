@@ -10,6 +10,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from app.database.user_crud import update_user_last_seen
 from app.keyboards.inline.main_kb_inline import main_kb_registered
 from app.database.tips_crud import get_all_tips, get_tip_by_id, get_tips_by_multiple_tags
 from app.database import user_crud
@@ -33,7 +34,8 @@ class AgeAndCategory(StatesGroup):
     data = State()
 
 async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, data: dict|bool = False):
-
+    # TODO: Где то здесь есть баг: если зарегистрироваться, почитать статьи до родов и вернуться, появится эта клава
+    #   При этом у аккаунта ещё нет ребёнка, а мы ниже его запросим
     if data:
         query_data = {
             'category': data['category'],
@@ -48,7 +50,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
         child_age_in_days: int = calculate_age_in_days(user_child[0])
 
         age_range: dict = calc_age_range_from_int(child_age_in_days)
-        print(age_range)
+
         try:
             age = age_range['error']
             await call.message.edit_text(child_too_old)
@@ -80,6 +82,9 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
             callback_data='В меню'
         ))
         await call.message.edit_text(category_introduction, reply_markup=mark)
+
+    update_user_last_seen(call.from_user.id)
+
 
 
 async def back_to_articles(call: types.CallbackQuery, state: FSMContext):

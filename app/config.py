@@ -53,4 +53,11 @@ AVAILABLE_AGES_initial = [
 ]
 
 
-BANNED_USERS = [25125125125, 770758970]
+BANNED_USERS = [25125125125, 7707589700]
+ADMINS = [1142511147]
+
+# List of cities that are available for "Мой город" functionality
+CITIES = []
+
+# After what time daily article should be shown after registration
+SEND_DAILY_ARTICLE_AFTER_REG = 5

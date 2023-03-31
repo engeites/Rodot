@@ -10,6 +10,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
 
+from app.database.user_crud import update_user_last_seen
 from app.keyboards.inline.ages import ages_keyboard, cb
 from app.keyboards.inline.main_kb_inline import main_kb_registered
 
@@ -19,6 +20,7 @@ from app.keyboards.inline.main_kb_inline import initial_kb, main_kb_unregistered
 
 from app.database import user_crud
 from app.database import tips_crud
+from app.database import db_analytics
 
 from app.utils.validators import validate_category
 
@@ -29,7 +31,7 @@ from app.texts.main_menu import main_menu_unregistered, main_menu_registered
 from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
 from app.texts.article_search_texts import category_not_found
 
-from app.config import CATEGORIES
+from app.config import CATEGORIES, ADMINS
 from app.handlers.articles import callback_data
 # callback_data = CallbackData('articles', 'id')
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard
@@ -71,15 +73,13 @@ async def get_age(call: types.CallbackQuery, callback_data: dict, state: FSMCont
 
 async def get_category(call: types.CallbackQuery, state:FSMContext):
     given_category = call.data
-    print(given_category)
+
     if given_category not in CATEGORIES:
         await call.message.edit_text(category_not_found, reply_markup=categories_kb)
         # TODO: Выше я вызвал kb_registered, но не факт что юзер на самом деле уже зарегистрирован
         return
 
     await state.update_data(category=validate_category(given_category))
-    print("Get category state data: ")
-    print(await state.get_data())
     state_data = await state.get_data()
 
     # Search for article that suits the given age and category
@@ -107,12 +107,12 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
 
     # Return list of articles in inline keyboard
     await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
+
+    update_user_last_seen(call.from_user.id)
     # await state.finish()
 
 
 async def go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
-    print(state.get_state())
-    print(state.get_data())
     if state:
         await state.finish()
     # await state.set_state(AgeAndTheme.category.state)
@@ -123,7 +123,6 @@ async def go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
 async def go_to_main(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
     user_registered = user_crud.check_if_user_passed_reg(call.from_user.id)
-    print(user_registered)
 
     if user_registered:
         await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
@@ -135,14 +134,17 @@ async def send_article_text(call: types.CallbackQuery, callback_data: dict):
     post_id = callback_data["id"]
 
     article = tips_crud.get_tip_by_id(post_id)
+
     text = f"<b>{article.header}</b> \n\n"
     text += article.tip
     text += "\n\n"
-    # tags = article.tags
-    #
-    # for tag in tags:
-    #     text += " #" + tag.name.strip()
-    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
+
+    if call.from_user.id in ADMINS:
+        await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id, admin=True))
+    else:
+        await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
+
+    db_analytics.log_article_read(call.from_user.id, article.id)
 
 async def send_our_philosophy(call: types.CallbackQuery):
     with suppress(MessageNotModified):
