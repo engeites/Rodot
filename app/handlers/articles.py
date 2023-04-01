@@ -43,7 +43,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
             'until_day': data['until_day']
         }
     else:
-        tag_list = [validate_category(call.data)]
+        tag_list = validate_category(call.data)
 
         # tips = get_all_tips()
         user_child = user_crud.get_user_child(call.from_user.id)

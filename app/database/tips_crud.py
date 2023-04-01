@@ -80,7 +80,7 @@ def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
 
     query = session.query(ParentingTip). \
         join(ParentingTip.tags). \
-        filter(Tag.name.in_(tags_list)). \
+        filter(Tag.name.in_([tags_list])). \
         filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
         distinct(ParentingTip.id)
 

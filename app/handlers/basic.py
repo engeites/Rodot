@@ -11,7 +11,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
 
 from app.database.models import ParentingTip
-from app.database.user_crud import update_user_last_seen
+from app.utils.form_tip_message import TipRenderer
+from app.database.user_crud import update_user_last_seen, check_if_user_passed_reg
 from app.keyboards.inline.ages import ages_keyboard, cb
 from app.keyboards.inline.main_kb_inline import main_kb_registered
 
@@ -22,6 +23,7 @@ from app.keyboards.inline.main_kb_inline import initial_kb, main_kb_unregistered
 from app.database import user_crud
 from app.database import tips_crud
 from app.database import db_analytics
+from app.utils.form_tip_list import form_tip_list
 
 from app.utils.validators import validate_category
 
@@ -74,59 +76,89 @@ async def get_age(call: types.CallbackQuery, callback_data: dict, state: FSMCont
 
 async def get_category(call: types.CallbackQuery, state:FSMContext):
     given_category = call.data
+    category = validate_category(given_category)
 
-    if given_category not in CATEGORIES:
-        await call.message.edit_text(category_not_found, reply_markup=categories_kb)
-        # TODO: Выше я вызвал kb_registered, но не факт что юзер на самом деле уже зарегистрирован
-        return
+    await state.update_data(category=category)
 
-    await state.update_data(category=validate_category(given_category))
-    state_data = await state.get_data()
-
-    # Search for articles that suits the given age and category
-    tips: list[ParentingTip]= tips_crud.get_tips_by_multiple_tags([state_data['category']],
-                                               int(state_data['from_day']),
-                                               int(state_data['until_day']))
-
-
-    # Form inline keyboard to show all suitable articles
-
-    mark = InlineKeyboardMarkup()
-
-    for tip in tips:
-        mark.add(InlineKeyboardButton(
-            text=tip.header,
-            callback_data=callback_data.new(str(tip.id))
-        ))
-
-    mark.add(InlineKeyboardButton(
-        text="Назад",
-        callback_data="Назад"
-    ),
-        InlineKeyboardButton(
-            text="На главную",
-            callback_data="На главную"
-    ))
-
-    # Return list of articles in inline keyboard
-    await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
+    search_criteria = await state.get_data()
+    print(f"Search_criteria {search_criteria}")
+    reply_markup = form_tip_list(search_criteria)
+    await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=reply_markup)
 
     update_user_last_seen(call.from_user.id)
-    # await state.finish()
+
+#
+# async def get_category(call: types.CallbackQuery, state:FSMContext):
+#     given_category = call.data
+#
+#     if given_category not in CATEGORIES:
+#         await call.message.edit_text(category_not_found, reply_markup=categories_kb)
+#         # TODO: Выше я вызвал kb_registered, но не факт что юзер на самом деле уже зарегистрирован
+#         return
+#
+#     await state.update_data(category=validate_category(given_category))
+#     state_data = await state.get_data()
+#
+#     print(state_data['category'], state_data['from_day'], state_data['until_day'])
+#     # Search for article that suits the given age and category
+#     tips: list[ParentingTip]= tips_crud.get_tips_by_multiple_tags([state_data['category']],
+#                                                int(state_data['from_day']),
+#                                                int(state_data['until_day']))
+#
+#     for i in tips:
+#         print('----------')
+#         print(i.header)
+#         print([f"Tag ID: {tag.id} | Name: {tag.name}" for tag in i.tags])
+#
+#     mark = InlineKeyboardMarkup()
+#
+#     for tip in tips:
+#         mark.add(InlineKeyboardButton(
+#             text=tip.header,
+#             callback_data=callback_data.new(str(tip.id))
+#         ))
+#
+#     mark.add(InlineKeyboardButton(
+#         text="< Назад",
+#         callback_data="< Назад"
+#     ),
+#         InlineKeyboardButton(
+#             text="На главную",
+#             callback_data="На главную"
+#     ))
+#
+#     # Return list of articles in inline keyboard
+#     await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
+#
+#     update_user_last_seen(call.from_user.id)
+#     # await state.finish()
+#
+
+async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    print(f"data from function go_back_to_articles{data}")
+    if not data:
+        # TODO: Check if user's passed_basic_reg is true and then show this:
+        user_registered = check_if_user_passed_reg(call.from_user.id)
+        if not user_registered:
+            await call.message.edit_text(main_menu_unregistered, reply_markup=main_kb_unregistered)
+            return
+        else:
+            await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
+            return
+    reply_markup: InlineKeyboardMarkup = form_tip_list(data)
+    await call.message.edit_text("По выбранным фильтрам есть следующие статьи", reply_markup=reply_markup)
 
 
-async def go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
-    if state:
-        await state.finish()
-    # await state.set_state(AgeAndTheme.category.state)
-    # await call.message.edit_caption(choose_category, reply_markup=categories_kb)
+async def go_back_to_categories(call: types.CallbackQuery, state: FSMContext):
+    await state.set_state(AgeAndTheme.category.state)
     await call.message.edit_text(choose_category, reply_markup=categories_kb)
 
 
 async def go_to_main(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
     user_registered = user_crud.check_if_user_passed_reg(call.from_user.id)
-
+    print(user_registered)
     if user_registered:
         await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
     else:
@@ -134,19 +166,17 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
 
 
 async def send_article_text(call: types.CallbackQuery, callback_data: dict):
-    print(callback_data)
     post_id = callback_data["id"]
 
     article = tips_crud.get_tip_by_id(post_id)
 
-    text = f"<b>{article.header}</b> \n\n"
-    text += article.tip
-    text += "\n\n"
+    renderer = TipRenderer(article)
+    final_message_text = renderer.render_tip()
 
     if call.from_user.id in ADMINS:
-        await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id, admin=True))
+        await call.message.edit_text(final_message_text, reply_markup=add_bookmark_keyboard(article.id, admin=True))
     else:
-        await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article.id))
+        await call.message.edit_text(final_message_text, reply_markup=add_bookmark_keyboard(article.id))
 
     db_analytics.log_article_read(call.from_user.id, article.id)
 
@@ -167,8 +197,7 @@ async def void_messages(message: types.Message):
 
 
 async def show_prenatal_articles(call: types.CallbackQuery):
-    print("Showing prenatal articles")
-    print(call.data)
+    # TODO: Totally remake this function. Add additional categories to this prenatal section
     tips = tips_crud.get_tips_by_multiple_tags(['До родов'], 0, 0)
 
     mark = InlineKeyboardMarkup()
@@ -203,11 +232,11 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)
+    dp.register_callback_query_handler(go_back_to_categories, Text(equals="< Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 
     dp.register_callback_query_handler(send_our_philosophy, Text(equals="🧑🏻‍🎓 Наша философия"))
-    # dp.register_message_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))
