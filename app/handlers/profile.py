@@ -10,6 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
+from app.database.advice_crud import add_new_advice, get_advice_for_age
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
@@ -17,6 +18,7 @@ from app.keyboards.inline.bookmarks import add_bookmark_go_back
 from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
 
 from app.database import user_crud, tips_crud
+from app.database.models import Child, ChildAdvice
 from app.utils.validators import calculate_age_in_days
 from app.texts import bookmark_texts, profile_texts
 
@@ -46,13 +48,25 @@ async def my_child(call: types.CallbackQuery):
     children = user.children
 
     if children:  # check if there are any children
-        child = children[0]  # get the first child in the list
+        child: Child = children[0]  # get the first child in the list
+        child_age_in_days = calculate_age_in_days(child.age)
+
+        # Search for short advice in the database
+        advices: tuple = get_advice_for_age(child_age_in_days)
+
+        advice_list = ""
+        for advice in advices:
+            advice_list += f"❤️ {advice.advice}\n"
 
         text = profile_texts.my_child.format(
             get_readable_date(child.age),
-            calculate_age_in_days(child.age),
-            sex_options[child.sex]
+            child_age_in_days,
+            sex_options[child.sex],
+            advice_list
         )
+        text += "\n\n"
+
+
     else:
         text = "You have no registered children"
 
@@ -165,6 +179,11 @@ async def day_by_day(call: types.CallbackQuery):
     await call.answer('Подписка уже оформлена автоматически')
 
 
+async def test(message: types.Message):
+    add_new_advice(1, 30, "Ребенок совсем маленький и у вас всё хорошо")
+    await message.answer('Done')
+
+
 def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(profile_menu_inline, Text(equals="⬆️ В профиль"))
     dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))
@@ -176,6 +195,7 @@ def register_profile_handlers(dp: Dispatcher):
 
     dp.register_callback_query_handler(start_search, Text(equals="🔎 Поиск по статьям"))
     dp.register_message_handler(search_for_articles, state=SearchState.query)
+    dp.register_message_handler(test, commands=['test'])
     dp.register_callback_query_handler(load_article, show_article_callback.filter())
 
     dp.register_callback_query_handler(my_city, Text(equals="🏙 Мой город"))

@@ -10,6 +10,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
 
+from app.database.models import ParentingTip
 from app.database.user_crud import update_user_last_seen
 from app.keyboards.inline.ages import ages_keyboard, cb
 from app.keyboards.inline.main_kb_inline import main_kb_registered
@@ -82,11 +83,13 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
     await state.update_data(category=validate_category(given_category))
     state_data = await state.get_data()
 
-    # Search for article that suits the given age and category
-    tips = tips_crud.get_tips_by_multiple_tags([state_data['category']],
+    # Search for articles that suits the given age and category
+    tips: list[ParentingTip]= tips_crud.get_tips_by_multiple_tags([state_data['category']],
                                                int(state_data['from_day']),
                                                int(state_data['until_day']))
 
+
+    # Form inline keyboard to show all suitable articles
 
     mark = InlineKeyboardMarkup()
 
@@ -131,6 +134,7 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
 
 
 async def send_article_text(call: types.CallbackQuery, callback_data: dict):
+    print(callback_data)
     post_id = callback_data["id"]
 
     article = tips_crud.get_tip_by_id(post_id)
@@ -193,9 +197,9 @@ def register_basic_handlers(dp: Dispatcher):
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='🐾 Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, cb.filter(from_day='back'), state=AgeAndTheme.from_day)
-
     dp.register_callback_query_handler(show_prenatal_articles, cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
+
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)

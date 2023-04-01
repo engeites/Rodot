@@ -133,6 +133,12 @@ def get_user_child(user_id: int):
         print("User not found.")
 
 
+def get_child_advice(session, child_id):
+    child = session.query(Child).get(child_id)
+    advice = child.advice
+    return [a.advice for a in advice]
+
+
 def check_if_user_passed_reg(user_id: int) -> bool:
     session = Session()
     reg_passed = session.query(User.passed_basic_reg).filter(User.telegram_user_id == user_id).first()

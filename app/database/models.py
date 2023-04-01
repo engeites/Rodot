@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean, Enum
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Table, ForeignKey, Boolean, Enum, Text, \
+    select, func
 from sqlalchemy.orm import relationship
 from .db import Base, engine
 
@@ -35,6 +36,13 @@ class Child(Base):
     age = Column(DateTime)
     sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
+
+class ChildAdvice(Base):
+    __tablename__ = 'child_advice'
+    id = Column(Integer, primary_key=True)
+    age_range_start = Column(Integer)
+    age_range_end = Column(Integer)
+    advice = Column(Text)
 
 
 class Bookmark(Base):

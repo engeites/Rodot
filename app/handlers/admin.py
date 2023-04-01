@@ -9,8 +9,9 @@ from aiogram.types import PhotoSize
 
 from app.config import ADMINS
 from app.database.user_crud import get_active_users
+from app.keyboards.inline.main_kb_inline import categories_kb
 from app.utils.time_ranges import get_hours_passed_today
-from app.utils.validators import validate_age
+from app.utils.validators import validate_age, validate_category
 from app.database.tips_crud import create_new_article
 from app.database.daily_tips_crud import create_daily_tip
 from app.database import db_analytics
@@ -47,7 +48,7 @@ async def add_new_article(message: types.Message, state: FSMContext):
     await state.finish()
     # This should filter users and respond to admin only
 
-    await message.answer("Adding new article to knowledge base.\n\n First, input a header")
+    await message.answer("Добавляем новую статью.\n\n Для начала введите заголовок")
     await state.set_state(Article.header.state)
 
 
@@ -55,21 +56,23 @@ async def set_header(message: types.Message, state: FSMContext):
     header = message.text
     await state.update_data(header=header)
     await state.set_state(Article.tip.state)
-    await message.answer("Got the header. Please send full article text")
+    await message.answer("Заголовок есть. Теперь заготовленный текст статьи")
 
 
 async def set_body(message: types.Message, state: FSMContext):
     body = message.text
     await state.update_data(tip=body)
     await state.set_state(Article.tags.state)
-    await message.answer("Got the article text. Please send tags. Divide by comma (,)")
+    await message.answer("Текст есть. Выберите категорию", reply_markup=categories_kb)
 
 
-async def set_tags(message: types.Message, state: FSMContext):
-    tags = message.text
-    await state.update_data(tags=tags)
+async def set_tags(call: types.CallbackQuery, state: FSMContext):
+    tags = call.data
+
+
+    await state.update_data(tags=validate_category(tags))
     await state.set_state(Article.age_range.state)
-    await message.answer("Got the tags list. Now please send the age when this article is useful",
+    await call.message.edit_text("Категория есть. Выберите возраст",
                          reply_markup=ages_keyboard)
 
 
@@ -80,13 +83,13 @@ async def set_age_inline(call: types.CallbackQuery, callback_data: dict, state: 
     article_data = await state.get_data()
 
     success = create_new_article(article_data, from_day, until_day)
-
+    print([tag.name for tag in success.tags])
     if not success:
         await call.message.edit_text("Something went wrong. Article was not saved")
         return
 
     await state.finish()
-    await call.message.edit_text("New article is successfully saved")
+    await call.message.edit_text("Новая статья сохранена")
 
 
 # ------ Handlers for creating DailyTip --------
@@ -175,7 +178,7 @@ async def get_active_users_statistics(message: types.Message):
 
     text = f"""
     За сегодня {active_users_today} пользователей выбирали категорию;
-    За 7 дней {active_users_today} пользователей выбирали категорию.
+    За 7 дней {active_users_seven_days} пользователей выбирали категорию.
     """
 
     await message.answer(text)
@@ -186,7 +189,8 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_message_handler(add_new_article, commands=['new'], state='*')
     dp.register_message_handler(set_header, state=Article.header.state)
     dp.register_message_handler(set_body, state=Article.tip.state)
-    dp.register_message_handler(set_tags, state=Article.tags.state)
+    # dp.register_message_handler(set_tags, state=Article.tags.state)
+    dp.register_callback_query_handler(set_tags, state=Article.tags.state)
     dp.register_callback_query_handler(set_age_inline, cb.filter(), state=Article.age_range.state)
 
     # Handlers for creating DailyTip
