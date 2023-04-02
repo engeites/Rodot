@@ -136,9 +136,10 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
 
 async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
+
     print(f"data from function go_back_to_articles{data}")
+
     if not data:
-        # TODO: Check if user's passed_basic_reg is true and then show this:
         user_registered = check_if_user_passed_reg(call.from_user.id)
         if not user_registered:
             await call.message.edit_text(main_menu_unregistered, reply_markup=main_kb_unregistered)
@@ -146,6 +147,7 @@ async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
         else:
             await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
             return
+
     reply_markup: InlineKeyboardMarkup = form_tip_list(data)
     await call.message.edit_text("По выбранным фильтрам есть следующие статьи", reply_markup=reply_markup)
 
@@ -233,6 +235,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndCategory.data)
     dp.register_callback_query_handler(go_back_to_categories, Text(equals="< Назад"), state=AgeAndTheme.category)
+    dp.register_callback_query_handler(go_back_to_categories, Text(equals="< Назад"), state=AgeAndCategory.data)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 

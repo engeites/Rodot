@@ -8,6 +8,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import PhotoSize
 
 from app.config import ADMINS
+from app.database.advice_crud import add_new_advice
 from app.database.user_crud import get_active_users
 from app.keyboards.inline.main_kb_inline import categories_kb
 from app.utils.time_ranges import get_hours_passed_today
@@ -41,6 +42,11 @@ class DailyArticle(StatesGroup):
     age_in_days = State()
     media = State()
 
+
+class Advice(StatesGroup):
+    age_range_start = State()
+    age_range_end = State()
+    advice = State()
 
 # ----- Handlers for creating normal ParentingTip ------
 async def add_new_article(message: types.Message, state: FSMContext):
@@ -184,12 +190,58 @@ async def get_active_users_statistics(message: types.Message):
     await message.answer(text)
 
 
+# Handlers to create new short Advice (ChildAdvice)
+
+async def cmd_new_advice(message: types.Message):
+    await message.answer("Добавляем новый короткий совет. Они показываются детям в определённый период. Например, с "
+                         "1 дня жизни до 30 дня жизни. Введите нижную планку границы - одно число от 0 до 180")
+    await Advice.age_range_start.set()
+
+
+async def set_are_range_start(message: types.Message, state: FSMContext):
+    try:
+        age_range_start = int(message.text)
+        await state.update_data(age_range_start=age_range_start)
+        await message.answer("Есть. Теперь введите конец возрастного диапазона (целое число):")
+        await Advice.age_range_end.set()
+    except ValueError:
+        await message.answer("Пожалуйста, введите целое число.")
+
+
+async def set_age_range_end(message: types.Message, state: FSMContext):
+    try:
+        age_range_end = int(message.text)
+        await state.update_data(age_range_end=age_range_end)
+        await message.answer("Есть. Теперь введите сам текст")
+        await Advice.advice.set()
+    except ValueError:
+        await message.answer("Пожалуйста, введите целое число.")
+
+
+async def set_advice(message: types.Message, state: FSMContext):
+    advice = message.text
+    await state.update_data(advice=advice)
+
+    # Get the data collected so far.
+    data = await state.get_data()
+    add_new_advice(
+        age_start=data['age_range_start'],
+        age_end=data['age_range_end'],
+        advice_text=data['advice']
+    )
+
+    await message.answer(f"Совет:\n{data['advice']}\n..добавлен. Он будет показан когда возраст ребёнка будет между "
+                         f"{data['age_range_start']} и {data['age_range_end']} дней")
+
+    await state.finish()
+
+
+
 def register_admin_hanlders(dp: Dispatcher):
     # Handlers for creating normal ParentingTip
     dp.register_message_handler(add_new_article, commands=['new'], state='*')
     dp.register_message_handler(set_header, state=Article.header.state)
     dp.register_message_handler(set_body, state=Article.tip.state)
-    # dp.register_message_handler(set_tags, state=Article.tags.state)
     dp.register_callback_query_handler(set_tags, state=Article.tags.state)
     dp.register_callback_query_handler(set_age_inline, cb.filter(), state=Article.age_range.state)
 
@@ -200,6 +252,12 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_message_handler(age_in_days_input, state=DailyArticle.age_in_days)
     dp.register_message_handler(pass_media, commands=['media_pass'], state=DailyArticle.media)
     dp.register_message_handler(add_media_for_daily_tip, content_types=['photo'], state=DailyArticle.media)
+
+    # Handlers for creating short advices (ChildAdvice model)
+    dp.register_message_handler(cmd_new_advice, commands=['new_advice'])
+    dp.register_message_handler(set_are_range_start, state=Advice.age_range_start)
+    dp.register_message_handler(set_age_range_end, state=Advice.age_range_end)
+    dp.register_message_handler(set_advice, state=Advice.advice)
 
     # Handlers to retrieve analytics
     dp.register_callback_query_handler(get_statistics_by_article, admin_statistics_cb.filter(), state='*')
