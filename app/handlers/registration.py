@@ -9,7 +9,7 @@ from aiogram.types import CallbackQuery
 from app.database.daily_tips import send_daily_tip_to_user
 from app.database.user_crud import update_user_last_seen
 # from app.keyboards.main_keyboards import main_keyboard_registered
-from app.keyboards.inline.main_kb_inline import main_kb_unregistered, main_kb_registered
+from app.keyboards.inline.main_kb_inline import main_kb_unregistered, main_keyboard_registered
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
 from app.texts import registration_texts
 
@@ -69,7 +69,7 @@ async def profile_start(call: types.CallbackQuery, state: FSMContext):
         await state.set_state(ProfileInfo.birth_date.state)
 
     else:
-        await call.message.edit_text(registration_texts.already_have_child, reply_markup=main_kb_registered)
+        await call.message.edit_text(registration_texts.already_have_child, reply_markup=main_keyboard_registered(call.from_user.id))
 
 
 async def birthday_set(message: types.Message, state: FSMContext):
@@ -106,7 +106,7 @@ async def city_set(message: types.Message, state: FSMContext):
         user_data['sex'],
     )
 
-    await message.answer(registration_texts.reg_finished, reply_markup=main_kb_registered)
+    await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered(message.from_user.id))
     await state.finish()
 
     # wait for some time and send article after some time, because articles are sent once per day and user may register after that time.

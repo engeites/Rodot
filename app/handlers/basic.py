@@ -11,10 +11,10 @@ from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
 
 from app.database.models import ParentingTip
+from app.extentions import logger
 from app.utils.form_tip_message import TipRenderer
 from app.database.user_crud import update_user_last_seen, check_if_user_passed_reg
-from app.keyboards.inline.ages import ages_keyboard, cb
-from app.keyboards.inline.main_kb_inline import main_kb_registered
+from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
 
 from app.texts.basic import choose_age, choose_category
 
@@ -54,7 +54,7 @@ async def send_welcome(message: types.Message):
     user, comment = user_crud.create_user(user_id, created_at)
     print(f"comment = {comment}")
     if comment == 'exists':
-        await message.answer(welcome_reg, reply_markup=main_kb_registered)
+        await message.answer(welcome_reg, reply_markup=main_keyboard_registered(message.from_user.id))
         return
 
     await message.answer(welcome_unreg, reply_markup=initial_kb)
@@ -87,52 +87,14 @@ async def get_category(call: types.CallbackQuery, state:FSMContext):
 
     update_user_last_seen(call.from_user.id)
 
-#
-# async def get_category(call: types.CallbackQuery, state:FSMContext):
-#     given_category = call.data
-#
-#     if given_category not in CATEGORIES:
-#         await call.message.edit_text(category_not_found, reply_markup=categories_kb)
-#         # TODO: Выше я вызвал kb_registered, но не факт что юзер на самом деле уже зарегистрирован
-#         return
-#
-#     await state.update_data(category=validate_category(given_category))
-#     state_data = await state.get_data()
-#
-#     print(state_data['category'], state_data['from_day'], state_data['until_day'])
-#     # Search for article that suits the given age and category
-#     tips: list[ParentingTip]= tips_crud.get_tips_by_multiple_tags([state_data['category']],
-#                                                int(state_data['from_day']),
-#                                                int(state_data['until_day']))
-#
-#     for i in tips:
-#         print('----------')
-#         print(i.header)
-#         print([f"Tag ID: {tag.id} | Name: {tag.name}" for tag in i.tags])
-#
-#     mark = InlineKeyboardMarkup()
-#
-#     for tip in tips:
-#         mark.add(InlineKeyboardButton(
-#             text=tip.header,
-#             callback_data=callback_data.new(str(tip.id))
-#         ))
-#
-#     mark.add(InlineKeyboardButton(
-#         text="< Назад",
-#         callback_data="< Назад"
-#     ),
-#         InlineKeyboardButton(
-#             text="На главную",
-#             callback_data="На главную"
-#     ))
-#
-#     # Return list of articles in inline keyboard
-#     await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
-#
-#     update_user_last_seen(call.from_user.id)
-#     # await state.finish()
-#
+
+async def get_category_new(call: types.CallbackQuery, state: FSMContext):
+    # Get previous data from callback. There should be from_day and until_day
+    # Then search for tips and close state.
+    # Open new state, where we store: 1. All tips retrieved; 2. Current page.
+        # This allows us to show tips
+    pass
+
 
 async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -145,7 +107,7 @@ async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
             await call.message.edit_text(main_menu_unregistered, reply_markup=main_kb_unregistered)
             return
         else:
-            await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
+            await call.message.edit_text(main_menu_registered, reply_markup=main_keyboard_registered(call.from_user.id))
             return
 
     reply_markup: InlineKeyboardMarkup = form_tip_list(data)
@@ -159,10 +121,10 @@ async def go_back_to_categories(call: types.CallbackQuery, state: FSMContext):
 
 async def go_to_main(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
+    logger.info("Finished previous state")
     user_registered = user_crud.check_if_user_passed_reg(call.from_user.id)
-    print(user_registered)
     if user_registered:
-        await call.message.edit_text(main_menu_registered, reply_markup=main_kb_registered)
+        await call.message.edit_text(main_menu_registered, reply_markup=main_keyboard_registered(call.from_user.id))
     else:
         await call.message.edit_text(main_menu_unregistered, reply_markup=main_kb_unregistered)
 
@@ -187,7 +149,7 @@ async def send_our_philosophy(call: types.CallbackQuery):
         await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
 
 async def send_help_message_reg(call: types.CallbackQuery):
-    await call.message.edit_text(help_message_reg, reply_markup=main_kb_registered)
+    await call.message.edit_text(help_message_reg, reply_markup=main_keyboard_registered(call.from_user.id))
 
 async def send_help_message_unreg(call: types.CallbackQuery):
     await call.message.edit_text(help_message_unreg, reply_markup=main_kb_unregistered)
@@ -227,9 +189,9 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(send_welcome, commands=['start'])
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='🐾 Выбрать возраст'), state="*")
-    dp.register_callback_query_handler(go_to_main, cb.filter(from_day='back'), state=AgeAndTheme.from_day)
-    dp.register_callback_query_handler(show_prenatal_articles, cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
-    dp.register_callback_query_handler(get_age, cb.filter(), state=AgeAndTheme.from_day)
+    dp.register_callback_query_handler(go_to_main, get_ages_cb.filter(from_day='back'), state=AgeAndTheme.from_day)
+    dp.register_callback_query_handler(show_prenatal_articles, get_ages_cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
+    dp.register_callback_query_handler(get_age, get_ages_cb.filter(), state=AgeAndTheme.from_day)
 
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)
     dp.register_callback_query_handler(send_article_text, callback_data.filter(), state=AgeAndTheme.category)
@@ -243,5 +205,5 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))
-    # dp.register_message_handler(go_to_main, commands=['cancel'], state="*")
+    dp.register_message_handler(go_to_main, commands=['cancel'], state="*")
     dp.register_message_handler(void_messages)

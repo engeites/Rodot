@@ -11,13 +11,13 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.user_crud import update_user_last_seen
-from app.keyboards.inline.main_kb_inline import main_kb_registered
+from app.keyboards.inline.main_kb_inline import main_keyboard_registered
 from app.database.tips_crud import get_all_tips, get_tip_by_id, get_tips_by_multiple_tags
-from app.database import user_crud
+from app.database import user_crud, tips_crud
 
 from app.utils.validators import validate_category
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard, already_bookmarked_kb, already_bookmarked_keyboard_from_search
-from app.keyboards.inline.bookmarks import cb
+from app.keyboards.inline.bookmarks import bookmarks_cb
 
 from app.utils.form_newborn_contents import newborn_section_introduction
 from app.texts.article_search_texts import category_introduction
@@ -69,7 +69,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
         await state.update_data(data=query_data)
 
         mark = InlineKeyboardMarkup()
-        tips = get_tips_by_multiple_tags(query_data['category'], query_data['from_day'], query_data['until_day'])
+        tips = tips_crud.get_tips_by_category(query_data['category'], query_data['from_day'], query_data['until_day'])
 
         for tip in tips:
             mark.add(InlineKeyboardButton(
@@ -97,7 +97,7 @@ async def back_to_articles(call: types.CallbackQuery, state: FSMContext):
 
 async def to_main_menu(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
-    await call.message.edit_text("Возвращаемся в главное меню", reply_markup=main_kb_registered)
+    await call.message.edit_text("Возвращаемся в главное меню", reply_markup=main_keyboard_registered(call.from_user.id))
 
 async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
 
@@ -120,7 +120,7 @@ async def already_saved(call: types.CallbackQuery, callback_data: dict):
 
 def register_articles_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(show_tips_for_category, Text(equals=CATEGORIES))
-    dp.register_callback_query_handler(already_saved, cb.filter(tip_id='0'), state="*")
-    dp.register_callback_query_handler(save_to_bookmarks, cb.filter(), state="*")
+    dp.register_callback_query_handler(already_saved, bookmarks_cb.filter(tip_id='0'), state="*")
+    dp.register_callback_query_handler(save_to_bookmarks, bookmarks_cb.filter(), state="*")
     # dp.register_callback_query_handler(back_to_articles, Text(equals="Назад"), state=AgeAndCategory.data)
     dp.register_callback_query_handler(to_main_menu, Text(equals="В меню"), state='*')

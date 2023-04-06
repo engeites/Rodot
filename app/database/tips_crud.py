@@ -24,7 +24,30 @@ def create_tip(header: str, tip_text: str, tag_names: List[str], age_in_days: in
     db.refresh(tip)
     return tip
 
-def create_new_article(article_data: dict, from_day: int, until_day: int):
+def create_new_article(article_data: dict, from_day: int, until_day: int) -> ParentingTip:
+    db = Session()
+    current_date = datetime.now()
+
+    tip_header = article_data['header']
+    tip_body = article_data['tip']
+    tip_category = article_data['category']
+
+    tip = ParentingTip(
+        header=tip_header,
+        tip=tip_body,
+        category=tip_category,
+        age_in_days=0,
+        useful_from_day=from_day,
+        useful_until_day=until_day,
+        created_at=current_date
+    )
+
+    db.add(tip)
+    db.commit()
+    db.refresh(tip)
+    return tip
+
+def create_new_article_old(article_data: dict, from_day: int, until_day: int):
     db = Session()
     current_date = datetime.now()
 
@@ -66,6 +89,17 @@ def get_tip_by_id(tip_id: int) -> ParentingTip:
     session.close()
     return tip
 
+
+def get_tips_by_category(category: str, start_age: int=1, end_age: int=540) -> list:
+    session = Session()
+
+    tip_list = session.query(ParentingTip).filter(
+        ParentingTip.category == category,
+        ParentingTip.useful_from_day <= start_age,
+        ParentingTip.useful_until_day >= end_age,
+    )
+    session.close()
+    return tip_list
 
 def get_all_tips() -> List[ParentingTip]:
     session = Session()

@@ -151,7 +151,7 @@ async def search_for_articles(message: types.Message, state: FSMContext):
     await state.finish()
 
     # redis_client.set(query, tip_list)
-    await message.answer("Here are articles that match search: ", reply_markup=mark)
+    await message.answer("Вот что удалось найти по вашему запросу: ", reply_markup=mark)
 
 
 async def load_article(call: CallbackQuery, callback_data: dict):

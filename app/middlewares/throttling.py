@@ -20,6 +20,7 @@ def rate_limit(limit: int, key=None):
         return func
     return decorator
 
+
 class ThrottlingMiddleware(BaseMiddleware):
     """
     Simple middleware

@@ -19,7 +19,7 @@ from app.config import API_TOKEN
 from app.middlewares.throttling import ThrottlingMiddleware
 from app.middlewares.all_callbacks import BigBrother
 
-logger = logging.getLogger(__name__)
+from app.extentions import logger
 
 
 async def create_bot():

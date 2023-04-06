@@ -2,7 +2,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-from app.config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES
+from app.config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES, ADMINS
 
 buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in INITIAL_CHOICE]
 
@@ -18,17 +18,20 @@ def main_keyboard_unregistered():
     return unreg_main_kb
 
 
-def main_keyboard_registered():
+def main_keyboard_registered(user_id: int):
 
     btn_list = CATEGORIES.copy()
     btn_list.append('🐾 Выбрать возраст')
 
     my_profile_btn = InlineKeyboardButton(text='⬆️ В профиль', callback_data='⬆️ В профиль')
     help_btn = InlineKeyboardButton(text='Помощь', callback_data='Помощь')
-    # contact_us_btn = InlineKeyboardButton(text='Контакты', callback_data='Контакты')
+    admin_panel_btn = InlineKeyboardButton(text='Админка', callback_data='admin_menu')
 
     reg_main_kb = InlineKeyboardMarkup(row_width=2)
     main_buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in btn_list]
+
+    if user_id in ADMINS:
+        reg_main_kb.add(admin_panel_btn)
 
     reg_main_kb.add(my_profile_btn)
 
@@ -52,5 +55,5 @@ def show_categories():
     return categories_kb
 
 main_kb_unregistered = main_keyboard_unregistered()
-main_kb_registered = main_keyboard_registered()
+# main_kb_registered = main_keyboard_registered()
 categories_kb = show_categories()

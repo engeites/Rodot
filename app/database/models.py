@@ -70,6 +70,7 @@ class ParentingTip(Base):
     header = Column(String, nullable=False)
     tip = Column(String, nullable=False)
     age_in_days = Column(String, nullable=False)
+    category = Column(String, nullable=False)
     useful_from_day = Column(Integer)
     useful_until_day = Column(Integer)
     created_at = Column(DateTime)

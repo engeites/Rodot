@@ -7,7 +7,7 @@ from app.handlers.articles import callback_data
 
 def form_tip_list(data: dict) -> InlineKeyboardMarkup:
     print(data)
-    tips: list[ParentingTip] = tips_crud.get_tips_by_multiple_tags(data['category'],
+    tips: list[ParentingTip] = tips_crud.get_tips_by_category(data['category'],
                                                                    int(data['from_day']),
                                                                    int(data['until_day']))
 

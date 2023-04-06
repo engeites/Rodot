@@ -5,17 +5,18 @@ from app.database import user_crud, tips_crud
 from app.database.models import ParentingTip
 
 
-cb = CallbackData("bookmark", "tip_id", 'place')
+bookmarks_cb = CallbackData("bookmark", "tip_id", 'place')
 bookmark_link_cb = CallbackData('link_to_tip', 'tip_id')
 admin_statistics_cb = CallbackData('tip_statistics', 'tip_id')
+
 
 def add_bookmark_keyboard(tip_id, admin: bool = False):
     mark = InlineKeyboardMarkup()
 
     add_bookmark = InlineKeyboardButton(
         text="Добавить в сохранённые",
-        callback_data=cb.new(tip_id=tip_id,
-                             place='categories')
+        callback_data=bookmarks_cb.new(tip_id=tip_id,
+                                       place='categories')
     )
     go_to_main = InlineKeyboardButton(
         text="Назад",
@@ -41,8 +42,8 @@ def already_bookmarked_keyboard():
 
     add_bookmark = InlineKeyboardButton(
         text="В сохранённых",
-        callback_data=cb.new(tip_id='0',
-                             place='categories')
+        callback_data=bookmarks_cb.new(tip_id='0',
+                                       place='categories')
     )
     go_to_main = InlineKeyboardButton(
         text="Назад",
@@ -58,8 +59,8 @@ def add_bookmark_go_back(tip_id):
 
     add_bookmark = InlineKeyboardButton(
         text="Добавить в сохранённые",
-        callback_data=cb.new(tip_id=tip_id,
-                             place='search')
+        callback_data=bookmarks_cb.new(tip_id=tip_id,
+                                       place='search')
     )
     go_to_main = InlineKeyboardButton(
         text="⬆️ В профиль",
@@ -75,8 +76,8 @@ def already_bookmarked_keyboard_from_search():
 
     add_bookmark = InlineKeyboardButton(
         text="В сохранённых",
-        callback_data=cb.new(tip_id='0',
-                             place='search')
+        callback_data=bookmarks_cb.new(tip_id='0',
+                                       place='search')
     )
     go_to_main = InlineKeyboardButton(
         text="⬆️ В профиль",
