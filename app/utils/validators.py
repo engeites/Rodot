@@ -17,10 +17,14 @@ def validate_date(date: str) -> datetime | bool:
             date_obj = datetime.strptime(date, format)
             return date_obj
         except ValueError:
-            pass
+            return False
 
-    return False
 
+def check_if_born(date_obj: datetime) -> str:
+    if date_obj < datetime.now():
+        return 'past'
+    else:
+        return 'future'
 
 def validate_age(age: str) -> int | bool:
     try:

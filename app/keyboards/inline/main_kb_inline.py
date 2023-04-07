@@ -2,7 +2,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-from app.config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES, ADMINS
+from config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES
+from app.extentions import ADMINS
 
 buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in INITIAL_CHOICE]
 
@@ -36,7 +37,6 @@ def main_keyboard_registered(user_id: int):
     reg_main_kb.add(my_profile_btn)
 
     reg_main_kb.add(*main_buttons)
-    # reg_main_kb.add(choose_age)
     reg_main_kb.add(help_btn)
     return reg_main_kb
 

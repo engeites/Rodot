@@ -1,16 +1,13 @@
 import datetime
-import unicodedata
 
 from contextlib import suppress
 from aiogram import types
 from aiogram import Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.callback_data import CallbackData
 
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
 
-from app.database.models import ParentingTip
 from app.extentions import logger
 from app.utils.form_tip_message import TipRenderer
 from app.database.user_crud import update_user_last_seen, check_if_user_passed_reg
@@ -24,6 +21,7 @@ from app.database import user_crud
 from app.database import tips_crud
 from app.database import db_analytics
 from app.utils.form_tip_list import form_tip_list
+from app.utils.message_formatters import TipFormatter
 
 from app.utils.validators import validate_category
 
@@ -32,14 +30,16 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
 from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
-from app.texts.article_search_texts import category_not_found
 
-from app.config import CATEGORIES, ADMINS
+from config import CATEGORIES, ADMINS
 from app.handlers.articles import callback_data
 # callback_data = CallbackData('articles', 'id')
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard
 
 from app.handlers.articles import AgeAndCategory
+
+
+# TODO: There is a bug: if baby's age in days = 0, bot says that he is too old to use this bot
 
 class AgeAndTheme(StatesGroup):
     from_day = State()
@@ -132,17 +132,20 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
 async def send_article_text(call: types.CallbackQuery, callback_data: dict):
     post_id = callback_data["id"]
 
-    article = tips_crud.get_tip_by_id(post_id)
+    tip = tips_crud.get_tip_by_id(post_id)
 
-    renderer = TipRenderer(article)
-    final_message_text = renderer.render_tip()
+    # renderer = TipRenderer(article)
+    # final_message_text = renderer.render_tip()
+
+    formatter = TipFormatter(tip)
+    message_text = formatter.form_final_text()
 
     if call.from_user.id in ADMINS:
-        await call.message.edit_text(final_message_text, reply_markup=add_bookmark_keyboard(article.id, admin=True))
+        await call.message.edit_text(message_text, reply_markup=add_bookmark_keyboard(tip.id, admin=True))
     else:
-        await call.message.edit_text(final_message_text, reply_markup=add_bookmark_keyboard(article.id))
+        await call.message.edit_text(message_text, reply_markup=add_bookmark_keyboard(tip.id))
 
-    db_analytics.log_article_read(call.from_user.id, article.id)
+    db_analytics.log_article_read(call.from_user.id, tip.id)
 
 async def send_our_philosophy(call: types.CallbackQuery):
     with suppress(MessageNotModified):

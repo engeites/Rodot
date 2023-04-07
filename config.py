@@ -1,4 +1,15 @@
-API_TOKEN = "1897888351:AAFfVlhyIEW1DjUYOCEr91AqPDaEA11Q0rg"
+import os
+
+from dotenv import load_dotenv
+
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+
+if os.path.exists(dotenv_path):
+    print("found file")
+    load_dotenv(dotenv_path)
+
+API_TOKEN = os.environ.get('BOT_API')
+
 
 CATEGORIES = [
     '🧼 Здоровье и гигиена',

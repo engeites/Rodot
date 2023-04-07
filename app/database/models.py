@@ -29,6 +29,7 @@ tags_association_table = Table(
     Column('tag_id', Integer, ForeignKey('tags.id'))
 )
 
+
 class Child(Base):
     __tablename__ = 'children'
     id = Column(Integer, primary_key=True)
@@ -36,6 +37,7 @@ class Child(Base):
     age = Column(DateTime)
     sex = Column(String)
     parent_id = Column(Integer, ForeignKey('users.id'))
+
 
 class ChildAdvice(Base):
     __tablename__ = 'child_advice'
@@ -71,11 +73,13 @@ class ParentingTip(Base):
     tip = Column(String, nullable=False)
     age_in_days = Column(String, nullable=False)
     category = Column(String, nullable=False)
+    advertisement = Column(String)
     useful_from_day = Column(Integer)
     useful_until_day = Column(Integer)
     created_at = Column(DateTime)
     tags = relationship("Tag", secondary=tags_association_table, back_populates="tips", lazy=False)
     media = relationship("Media", backref="tip")
+
 
 class Media(Base):
     __tablename__ = 'media'
@@ -120,6 +124,21 @@ class UserArticle(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     article_id = Column(Integer, ForeignKey('parenting_tips.id'))
     created_at = Column(DateTime, nullable=False)
+
+
+class AdminUser(Base):
+    __tablename__ = 'admin_users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
+
+
+# Define the model for banned users
+class BannedUser(Base):
+    __tablename__ = 'banned_users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String)
 
 
 # Create the database tables

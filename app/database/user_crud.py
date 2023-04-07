@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from typing import List, Type
-from .models import User, Child, Bookmark
+from .models import User, Child, Bookmark, AdminUser
 from .db import engine
 
 
@@ -143,6 +143,21 @@ def check_if_user_passed_reg(user_id: int) -> bool:
     session = Session()
     reg_passed = session.query(User.passed_basic_reg).filter(User.telegram_user_id == user_id).first()
     return reg_passed[0]
+
+
+def set_user_as_admin(user_id: int) -> None:
+    session = Session()
+    new_admin = AdminUser(username=user_id)
+
+    session.add(new_admin)
+    session.commit()
+    session.close()
+
+
+def get_all_admins() -> list:
+    session = Session()
+    return session.query(AdminUser).all()
+
 
 def delete_user(user_id: int) -> None:
     session = Session()

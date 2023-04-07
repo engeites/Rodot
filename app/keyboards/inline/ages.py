@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 
-from app.config import AVAILABLE_AGES_initial
+from config import AVAILABLE_AGES_initial
 get_ages_cb = CallbackData("get_age", "from_day", "until_day")
 
 def ages_keyboard():

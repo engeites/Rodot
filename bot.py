@@ -15,7 +15,8 @@ from app.handlers.admin import register_admin_hanlders
 from app.handlers.profile import register_profile_handlers
 from app.handlers.errors import register_user_handlers
 
-from app.config import API_TOKEN
+from config import API_TOKEN
+from app.database import user_crud
 from app.middlewares.throttling import ThrottlingMiddleware
 from app.middlewares.all_callbacks import BigBrother
 
@@ -30,6 +31,7 @@ async def create_bot():
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
     logger.error("Starting bot")
+
 
     bot = Bot(token=API_TOKEN, parse_mode='HTML')
     dp = Dispatcher(bot, storage=MemoryStorage())

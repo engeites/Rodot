@@ -1,16 +1,12 @@
-import os
-import io
-
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import PhotoSize, InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton
 
-from app.config import ADMINS
 from app.database.advice_crud import add_new_advice
 from app.database.user_crud import get_active_users
-from app.extentions import logger
+from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
 from app.keyboards.inline.main_kb_inline import categories_kb
 from app.utils.time_ranges import get_hours_passed_today
@@ -75,7 +71,7 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.update_data(tip=body)
     await state.set_state(Article.category.state)
 
-    reply_kb = categories_kb
+    reply_kb = categories_kb.copy()
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await message.answer("Текст есть. Выберите категорию", reply_markup=reply_kb)
@@ -88,7 +84,7 @@ async def set_category(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(category=validate_category(category))
     await state.set_state(Article.age_range.state)
 
-    reply_kb = ages_keyboard
+    reply_kb = ages_keyboard.copy()
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await call.message.edit_text("Категория есть. Выберите возраст",
@@ -108,7 +104,7 @@ async def set_age_inline(call: types.CallbackQuery, callback_data: dict, state: 
         return
 
     await state.finish()
-    await call.message.edit_text("Новая статья сохранена")
+    await call.message.edit_text("Новая статья сохранена", reply_markup=admin_kb)
 
 
 # ------ Handlers for creating DailyTip --------
@@ -181,12 +177,12 @@ async def get_statistics_by_article(call: types.CallbackQuery, callback_data: di
     analytic_data: dict = db_analytics.get_article_statistics(article_id)
 
     text = f"""
-    Статья была прочитана:
-    {analytic_data['today']} раз за сегодня;
-    {analytic_data['yesterday']} раз за вчера;
-    {analytic_data['last_week']} раз за 7 дней;
-    {analytic_data['last_month']} раз за 30 дней;
-    {analytic_data['total']} раз за всё время;
+    Уникальных просмотров статьи:
+    {analytic_data['today']} за сегодня;
+    {analytic_data['yesterday']} за вчера;
+    {analytic_data['last_week']} за 7 дней;
+    {analytic_data['last_month']} за 30 дней;
+    {analytic_data['total']} за всё время;
     """
 
     await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article_id))

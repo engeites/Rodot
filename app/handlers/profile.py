@@ -11,6 +11,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
 from app.database.advice_crud import add_new_advice, get_advice_for_age
+from app.database.models import ParentingTip
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
@@ -18,8 +19,7 @@ from app.keyboards.inline.bookmarks import add_bookmark_go_back
 from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
 
 from app.database import user_crud, tips_crud
-from app.database.models import Child, ChildAdvice
-from app.utils.validators import calculate_age_in_days
+from app.utils.message_formatters import MyChildMessageFormatter, TipFormatter
 from app.texts import bookmark_texts, profile_texts
 
 from app.extentions import redis_client
@@ -31,44 +31,14 @@ class SearchState(StatesGroup):
 
 async def profile_menu_inline(call: types.CallbackQuery):
     await call.message.edit_text(profile_texts.profile_introduction,
-        reply_markup=profile_kb
-    )
+        reply_markup=profile_kb)
+
 
 async def my_child(call: types.CallbackQuery):
-
-    def get_readable_date(birth_date: datetime) -> str:
-         return birth_date.strftime("%d.%m.%Y")
-
-    sex_options = {
-        'male': 'мальчик',
-        'female': 'девочка'
-    }
-
     user = user_crud.get_user_by_tg_id(call.from_user.id)
-    children = user.children
 
-    if children:  # check if there are any children
-        child: Child = children[0]  # get the first child in the list
-        child_age_in_days = calculate_age_in_days(child.age)
-
-        # Search for short advice in the database
-        advices: tuple = get_advice_for_age(child_age_in_days)
-
-        advice_list = ""
-        for advice in advices:
-            advice_list += f"❤️ {advice.advice}\n"
-
-        text = profile_texts.my_child.format(
-            get_readable_date(child.age),
-            child_age_in_days,
-            sex_options[child.sex],
-            advice_list
-        )
-        text += "\n\n"
-
-
-    else:
-        text = "You have no registered children"
+    formatter = MyChildMessageFormatter(user)
+    message_text = formatter.form_final_message()
 
     mark = InlineKeyboardMarkup()
     mark.add(InlineKeyboardButton(
@@ -76,7 +46,7 @@ async def my_child(call: types.CallbackQuery):
         callback_data='⬆️ В профиль'
     ))
 
-    await call.message.edit_text(text, reply_markup=mark)
+    await call.message.edit_text(message_text, reply_markup=mark)
 
 
 async def get_my_bookmarks(call: types.CallbackQuery):
@@ -98,17 +68,12 @@ async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
         callback_data='< Назад к списку'
     ))
 
-    article = tips_crud.get_tip_by_id(callback_data['tip_id'])
-    text = article.header
-    text += "\n\n"
-    text += article.tip
-    text += "\n\n"
-    tags = article.tags
+    tip: ParentingTip = tips_crud.get_tip_by_id(callback_data['tip_id'])
 
-    for tag in tags:
-        text += " #" + tag.name
+    formatter = TipFormatter(tip)
+    message_text = formatter.form_final_text()
 
-    await call.message.edit_text(text, reply_markup=mark)
+    await call.message.edit_text(message_text, reply_markup=mark)
 
 
 async def go_to_profile(call: types.CallbackQuery):
@@ -155,19 +120,15 @@ async def search_for_articles(message: types.Message, state: FSMContext):
 
 
 async def load_article(call: CallbackQuery, callback_data: dict):
-    print(call.data)
-    print('Run func load article')
     post_id = callback_data["id"]
-    article = tips_crud.get_tip_by_id(post_id)
-    text = f"<b>{article.header}</b> \n\n"
-    text += article.tip
-    text += "\n\n"
-    tags = article.tags
+    tip: ParentingTip = tips_crud.get_tip_by_id(post_id)
 
-    for tag in tags:
-        text += " #" + tag.name.strip()
+    formatter = TipFormatter(tip)
+    message_text = formatter.form_final_text()
+
     with suppress(MessageNotModified):
-        await call.message.edit_text(text, reply_markup=add_bookmark_go_back(article.id))
+        await call.message.edit_text(message_text, reply_markup=add_bookmark_go_back(tip.id))
+
 
 
 async def my_city(call: types.CallbackQuery):

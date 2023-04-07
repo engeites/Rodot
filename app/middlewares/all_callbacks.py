@@ -1,8 +1,8 @@
 from aiogram.dispatcher.handler import CancelHandler
-from aiogram.dispatcher.middlewares import LifetimeControllerMiddleware, BaseMiddleware
+from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram import types
-from app.config import BANNED_USERS
-from aiogram.dispatcher.storage import FSMContext
+from config import BANNED_USERS
+
 
 class BigBrother(BaseMiddleware):
     async def on_pre_process_update(self, update: types.Update, data: dict):

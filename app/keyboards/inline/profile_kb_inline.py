@@ -1,7 +1,7 @@
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.config import PROFILE_KB_BTNS
+from config import PROFILE_KB_BTNS
 
 
 # Create a list of InlineKeyboardButton objects

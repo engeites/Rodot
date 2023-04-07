@@ -1,5 +1,4 @@
 from asyncio import sleep
-from datetime import datetime
 from aiogram import Dispatcher, types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
@@ -18,7 +17,7 @@ from app.utils.texts_handling import handle_daily_article
 from app.utils.validators import validate_date
 
 from app.keyboards.inline import child_sex
-from app.config import SEND_DAILY_ARTICLE_AFTER_REG, CITIES
+from config import SEND_DAILY_ARTICLE_AFTER_REG, CITIES
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -112,18 +111,22 @@ async def city_set(message: types.Message, state: FSMContext):
     # wait for some time and send article after some time, because articles are sent once per day and user may register after that time.
     await sleep(SEND_DAILY_ARTICLE_AFTER_REG)
 
-    article_to_send: dict = handle_daily_article(send_daily_tip_to_user(message.from_user.id))
-
-    message_text = f"""
-    <b>{article_to_send['header']}</b>
-
-    {article_to_send['body']}
-    """
-
-    if article_to_send['media']:
-        await message.answer_photo(article_to_send['media'], caption=message_text)
+    todays_tip = send_daily_tip_to_user(message.from_user.id)
+    if not todays_tip:
+        pass
     else:
-        await message.answer(message_text)
+        article_to_send: dict = handle_daily_article(send_daily_tip_to_user(message.from_user.id))
+
+        message_text = f"""
+        <b>{article_to_send['header']}</b>
+    
+        {article_to_send['body']}
+        """
+
+        if article_to_send['media']:
+            await message.answer_photo(article_to_send['media'], caption=message_text)
+        else:
+            await message.answer(message_text)
 
 
 async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):

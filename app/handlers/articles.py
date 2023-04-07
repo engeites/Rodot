@@ -12,20 +12,18 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.user_crud import update_user_last_seen
 from app.keyboards.inline.main_kb_inline import main_keyboard_registered
-from app.database.tips_crud import get_all_tips, get_tip_by_id, get_tips_by_multiple_tags
 from app.database import user_crud, tips_crud
 
 from app.utils.validators import validate_category
-from app.keyboards.inline.bookmarks import add_bookmark_keyboard, already_bookmarked_kb, already_bookmarked_keyboard_from_search
+from app.keyboards.inline.bookmarks import already_bookmarked_kb, already_bookmarked_keyboard_from_search
 from app.keyboards.inline.bookmarks import bookmarks_cb
 
-from app.utils.form_newborn_contents import newborn_section_introduction
 from app.texts.article_search_texts import category_introduction
 from app.texts.basic import child_too_old
 
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
-from app.config import CATEGORIES
+from config import CATEGORIES
 
 callback_data = CallbackData('articles', 'id')
 
