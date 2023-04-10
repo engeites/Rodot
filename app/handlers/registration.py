@@ -107,6 +107,10 @@ async def city_set(message: types.Message, state: FSMContext):
         user_data['sex'],
     )
     logger.info(f"Added new child for user {message.from_user.id}. Registration process finished successfully.")
+
+    success = user_crud.update_user_city(message.from_user.id, given_city)
+    logger.info(f"Updated city for user {message.from_user.id}. New city: {given_city}.")
+
     await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered(message.from_user.id))
     await state.finish()
 

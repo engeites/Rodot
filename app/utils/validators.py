@@ -1,5 +1,5 @@
 import datetime
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 from app.extentions import logger
@@ -40,6 +40,12 @@ def validate_age(age: str) -> int | bool:
 def get_tags_from_str(tags: str) -> List[str]:
     tag_list = tags.split(',')
     return tag_list
+
+
+def add_days_to_today_utc(days):
+    now = datetime.utcnow()
+    future = now + timedelta(days=days)
+    return future.replace(tzinfo=timezone.utc)
 
 
 def calculate_age_in_days(birth_date: datetime) -> int:

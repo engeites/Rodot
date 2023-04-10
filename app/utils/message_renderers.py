@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from app.database import tips_crud, ads_crud
 from app.database.advice_crud import get_advice_for_age
 from app.database.models import User, Child, ParentingTip
 from app.extentions import logger
@@ -83,7 +84,10 @@ class TipRenderer:
     def add_advertisement_text(self):
         if self.tip.advertisement:
             logger.info(f"Ad from tip: {self.tip.header} was shown")
-            return f"\n\n#ad\n{self.tip.advertisement}"
+
+            # ads_crud.add_advertisement_log(self.tip.id)
+            ads_crud.add_advertisement_log(self.tip.id)
+            return f"\n\n#ad\n{self.tip.advertisement.name}"
         return False
 
 
@@ -95,13 +99,11 @@ class TipRenderer:
 
         ad_text = self.add_advertisement_text()
 
-        logger.info(f"Rendered tip {self.tip.header}. Tip has ad text")
-
-
         if not ad_text:
             logger.info(f"Rendered tip {self.tip.header}. Tip has no ads at moment")
             return text
 
+        logger.info(f"Rendered tip {self.tip.header}. Tip has ad text")
         text += ad_text
         return text
 

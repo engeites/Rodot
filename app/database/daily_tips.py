@@ -4,7 +4,7 @@ from typing import List
 import aiogram
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, joinedload
-from app.database.models import DailyTip, Child, User, tags_association_table
+from app.database.models import DailyTip, Child, User
 from . import user_crud
 
 from .db import engine

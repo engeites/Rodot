@@ -71,7 +71,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
 
         mark = InlineKeyboardMarkup()
         tips = tips_crud.get_tips_by_category(query_data['category'], query_data['from_day'], query_data['until_day'])
-
+        logger.info(f"Searching for tips with query: 'from_day': {query_data['from_day']}, 'until_day': {query_data['until_day']}, 'category': {query_data['category']}. Found {tips.count()}")
         for tip in tips:
             mark.add(InlineKeyboardButton(
                 text=tip.header,

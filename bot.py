@@ -20,7 +20,7 @@ from app.database import user_crud
 from app.middlewares.throttling import ThrottlingMiddleware
 from app.middlewares.all_callbacks import BigBrother
 
-from app.extentions import logger
+from app.extentions import logger, ADMINS
 
 
 async def create_bot():
@@ -32,6 +32,7 @@ async def create_bot():
     )
     logger.error("Starting bot")
 
+    logger.info(f"list of admins: {ADMINS}")
 
     bot = Bot(token=API_TOKEN, parse_mode='HTML')
     dp = Dispatcher(bot, storage=MemoryStorage())

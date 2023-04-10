@@ -8,6 +8,7 @@ from app.database.models import ParentingTip
 bookmarks_cb = CallbackData("bookmark", "tip_id", 'place')
 bookmark_link_cb = CallbackData('link_to_tip', 'tip_id')
 admin_statistics_cb = CallbackData('tip_statistics', 'tip_id')
+add_advertisement_cb = CallbackData('new_ad', 'tip_id')
 
 
 def add_bookmark_keyboard(tip_id, admin: bool = False):
@@ -32,8 +33,13 @@ def add_bookmark_keyboard(tip_id, admin: bool = False):
                 tip_id=tip_id
             )
         )
+        add_new_ad = InlineKeyboardButton(
+                    text="Добавить рекламу",
+                    callback_data=add_advertisement_cb.new(
+                        tip_id=tip_id
+                    ))
 
-        mark.add(add_bookmark)
+        mark.add(add_bookmark, add_new_ad)
     return mark
 
 

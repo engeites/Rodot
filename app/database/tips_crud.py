@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy.orm import sessionmaker, subqueryload
+from sqlalchemy.orm import sessionmaker, subqueryload, joinedload
 from sqlalchemy import or_
 from sqlalchemy.sql import text, func, and_
 from typing import List
-from .models import ParentingTip, Tag
+from .models import ParentingTip, AdvertisementLog
 from .db import engine
 
 from app.utils.validators import get_tags_from_str
@@ -62,12 +62,12 @@ def create_new_article_old(article_data: dict, from_day: int, until_day: int):
         useful_until_day=until_day,
         created_at=current_date
     )
-    tag_list = get_tags_from_str(article_data['tags'])
+    # tag_list = get_tags_from_str(article_data['tags'])
 
-    for tag_name in tag_list:
-        tag = Tag(name=tag_name.strip())
-        tip.tags.append(tag)
-        db.add(tag)
+    # for tag_name in tag_list:
+    #     tag = Tag(name=tag_name.strip())
+    #     tip.tags.append(tag)
+    #     db.add(tag)
     db.add(tip)
     db.commit()
     db.refresh(tip)
@@ -76,18 +76,18 @@ def create_new_article_old(article_data: dict, from_day: int, until_day: int):
 
 def get_multiple_tips_by_ids(id_list: list):
     session = Session()
-    print(f"Got these id's: {id_list}")
     tips = session.query(ParentingTip).filter(ParentingTip.id.in_(id_list)).all()
-    for tip in tips:
-        print(tip)
     session.close()
     return tips
 
+
 def get_tip_by_id(tip_id: int) -> ParentingTip:
     session = Session()
-    tip = session.query(ParentingTip).filter(ParentingTip.id == tip_id).first()
-    session.close()
-    return tip
+    try:
+        parenting_tip = session.query(ParentingTip).options(joinedload(ParentingTip.advertisement)).get(tip_id)
+        return parenting_tip
+    finally:
+        session.close()
 
 
 def get_tips_by_category(category: str, start_age: int=1, end_age: int=540) -> list:
@@ -108,20 +108,7 @@ def get_all_tips() -> List[ParentingTip]:
     return tips
 
 
-def get_tips_by_multiple_tags(tags_list: list, start_age=1, end_age=540):
-    session = Session()
-    print(tags_list)
-
-    query = session.query(ParentingTip). \
-        join(ParentingTip.tags). \
-        filter(Tag.name.in_([tags_list])). \
-        filter(and_(ParentingTip.useful_from_day >= start_age, ParentingTip.useful_until_day <= end_age)). \
-        distinct(ParentingTip.id)
-
-    tips_by_tags = query.all()
-    return tips_by_tags
-
-def search_tips(query_txt):
+def search_tips_by_query(query_txt: str) -> list:
     session = Session()
 
     # split query into individual keywords
@@ -146,32 +133,6 @@ def get_tip_with_media(tip_id: int):
         id=tip_id).first()
     
     return tip_with_media
-
-def get_tips_by_tag(tag: str):
-    db = Session()
-    # print(f"Looking for tag: '{tag}' of type {type(tag)} ")
-    # tips = db.query(ParentingTip).filter(ParentingTip.tags.any(tag)).all()
-    # tag_expr = text(tag)
-    tag_expr = text(f"'{tag}'")
-    # test = db.query(ParentingTip)
-    # for i in test:
-    #     for j in i.tags:
-    #         print(j.name)
-    # tips = db.query(ParentingTip).filter(ParentingTip.tags.any(tag) == tag_expr).all()
-    # tips = db.query(ParentingTip).filter(ParentingTip.tags.any(tag) == True).all()
-    # tips = db.query(ParentingTip).filter(ParentingTip.tags.any(tag_expr)).all()
-    # tips = (
-    #     db.query(ParentingTip)
-    #     .join(ParentingTip.tags)
-    #     .filter(Tag.name == tag_expr)
-    #     .all()
-    # )
-
-    # tips = db.query(ParentingTip).filter(ParentingTip.tags.any(Tag.name == tag_expr)).all()
-
-    tips = db.query(ParentingTip).join(ParentingTip.tags).filter(Tag.name == tag_expr).all()
-
-    return tips
 
 
 def update_tip(tip_id: int, age_in_months: int, tip_text: str) -> ParentingTip:

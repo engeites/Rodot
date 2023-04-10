@@ -2,9 +2,10 @@ from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import InlineKeyboardButton
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.database.advice_crud import add_new_advice
+from app.database.models import AdvertisementLog
 from app.database.user_crud import get_active_users
 from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
@@ -13,10 +14,10 @@ from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age, validate_category
 from app.database.tips_crud import create_new_article
 from app.database.daily_tips_crud import create_daily_tip
-from app.database import db_analytics
+from app.database import db_analytics, ads_crud, tips_crud
 
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
-from app.keyboards.inline.bookmarks import admin_statistics_cb, add_bookmark_keyboard
+from app.keyboards.inline.bookmarks import admin_statistics_cb, add_bookmark_keyboard, add_advertisement_cb
 
 
 # StatesGroup for normal articles
@@ -30,7 +31,16 @@ class Article(StatesGroup):
     age_range = State()
 
 
-# StatesGroup for Daily article
+class Advertisement(StatesGroup):
+    """
+    Represents StatesGroup for adding Advertisement to tip
+    """
+    tip_id = State()
+    ad_text = State()
+    active_period = State()
+    confirm = State()
+    vendor = State()
+
 class DailyArticle(StatesGroup):
     """
     Represents StatesGroup for daily articles
@@ -71,7 +81,7 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.update_data(tip=body)
     await state.set_state(Article.category.state)
 
-    reply_kb = categories_kb.copy()
+    reply_kb = categories_kb
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await message.answer("Текст есть. Выберите категорию", reply_markup=reply_kb)
@@ -84,7 +94,7 @@ async def set_category(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(category=validate_category(category))
     await state.set_state(Article.age_range.state)
 
-    reply_kb = ages_keyboard.copy()
+    reply_kb = ages_keyboard
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await call.message.edit_text("Категория есть. Выберите возраст",
@@ -253,6 +263,91 @@ async def set_advice(message: types.Message, state: FSMContext):
     await state.finish()
 
 
+# Handlers for adding advertisements
+async def add_new_ad_for_article(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    await state.finish()
+    tip_id = callback_data['tip_id']
+
+    Advertisement.tip_id=tip_id
+    # await Advertisement.tip_id.set()
+    # await state.update_data(tip_id=tip_id)
+    await Advertisement.ad_text.set()
+    await state.update_data(tip_id=tip_id)
+
+    logger.info(f"Stared adding new ad process for tip ID: {tip_id}")
+    await call.message.edit_text(f"Добавляем новую рекламу к статье с ID: {tip_id}. Введите текст рекламы.")
+
+
+async def add_text_to_ad(message: types.Message, state: FSMContext):
+    ad_text = message.text
+    logger.info(f"Got ad text: {ad_text}")
+    await state.update_data(ad_text=ad_text)
+
+    await message.answer(f"Есть! Укажите сколько дней будет действовать реклама. Введите одно число")
+    await Advertisement.active_period.set()
+
+
+async def set_ad_show_period(message: types.Message, state: FSMContext):
+    try:
+        ad_active_for = int(message.text)
+        await state.update_data(active_period=ad_active_for)
+        await message.answer("Ок. Теперь введите имя заказчика - его можно будет найти в панели администрирование реклам.")
+        await Advertisement.vendor.set()
+
+    except ValueError:
+        await message.answer(f"Пожалуйста, введите длительноть в днях. Одно число.")
+
+
+async def set_ad_vendor(message: types.Message, state: FSMContext):
+    vendor_name = message.text
+
+    await state.update_data(vendor=vendor_name)
+
+    mark = InlineKeyboardMarkup()
+    confirm = InlineKeyboardButton(
+        text="Подтвердить",
+        callback_data="confirm_new_ad"
+    )
+    cancel = InlineKeyboardButton(
+        text="Отмена",
+        callback_data="cancel_new_ad"
+    )
+
+    mark.add(confirm, cancel)
+
+    ad_data = await state.get_data()
+
+    await message.answer(f"Добавляем новую рекламу:\n\n{ad_data['ad_text']}\n\n ...к статье: {Advertisement.tip_id} на "
+                         f"период в {ad_data['active_period']} дней. Заказчик: {ad_data['vendor']}. Вы уверены?",
+                         reply_markup=mark)
+
+    await Advertisement.confirm.set()
+
+async def confirm_new_ad(call: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    print(data)
+
+    # tips_crud.update_advertisement(data['tip_id'], data['text'])
+    ads_crud.add_advertisement_to_tip(
+
+        data['tip_id'],
+        data['ad_text'],
+        data['vendor'],
+        data['active_period']
+    )
+
+    await state.finish()
+    await call.message.edit_text("Реклама успешно добавлена",
+                                 reply_markup=admin_kb)
+
+
+async def cancel_new_ad(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    await call.message.edit_text("Добавление рекламы отменено",
+                                 reply_markup=admin_kb)
+
+
+
 # Handlers for admin menu navigation
 async def open_admin_panel(call: types.CallbackQuery):
     await call.message.edit_text("Добро пожаловать в админ панель", reply_markup=admin_kb)
@@ -268,6 +363,14 @@ def register_admin_hanlders(dp: Dispatcher):
     # Handlers for admin menu navigation
     dp.register_callback_query_handler(cancel_any_input, Text(equals="cancel"), state='*')
     dp.register_callback_query_handler(open_admin_panel, Text(equals="admin_menu"))
+
+    # Handlers for adding new advertisement to ParentingTip:
+    dp.register_callback_query_handler(add_new_ad_for_article, add_advertisement_cb.filter(), state="*")
+    dp.register_message_handler(add_text_to_ad, state=Advertisement.ad_text)
+    dp.register_message_handler(set_ad_show_period, state=Advertisement.active_period)
+    dp.register_message_handler(set_ad_vendor, state=Advertisement.vendor)
+    dp.register_callback_query_handler(confirm_new_ad, Text(equals="confirm_new_ad"), state=Advertisement.confirm)
+    dp.register_callback_query_handler(cancel_new_ad, Text(equals="cancel_new_ad"), state=Advertisement.confirm)
 
 
     # Handlers for creating normal ParentingTip

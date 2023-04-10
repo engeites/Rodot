@@ -160,6 +160,16 @@ def get_all_admins() -> list:
     return session.query(AdminUser).all()
 
 
+def update_user_city(telegram_user_id, new_city):
+    session = Session()
+    user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
+    if user:
+        user.city = new_city
+        session.commit()
+    else:
+        print(f"User with telegram_user_id {telegram_user_id} not found")
+
+
 def delete_user(user_id: int) -> None:
     session = Session()
     try:

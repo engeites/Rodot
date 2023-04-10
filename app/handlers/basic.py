@@ -11,6 +11,7 @@ from aiogram.utils.exceptions import MessageNotModified
 from app.extentions import logger
 from app.database.user_crud import update_user_last_seen, check_if_user_passed_reg
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
+from app.keyboards.inline.bookmarks import add_advertisement_cb
 
 from app.texts.basic import choose_age, choose_category
 
@@ -20,7 +21,7 @@ from app.database import user_crud
 from app.database import tips_crud
 from app.database import db_analytics
 from app.utils.form_tip_list import form_tip_list
-from app.utils.message_formatters import TipRenderer
+from app.utils.message_renderers import TipRenderer
 
 from app.utils.validators import validate_category
 

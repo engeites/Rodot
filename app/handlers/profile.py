@@ -19,7 +19,7 @@ from app.keyboards.inline.bookmarks import add_bookmark_go_back
 from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
 
 from app.database import user_crud, tips_crud
-from app.utils.message_formatters import MyChildMessageFormatter, TipRenderer
+from app.utils.message_renderers import MyChildMessageFormatter, TipRenderer
 from app.texts import bookmark_texts, profile_texts
 
 from app.extentions import redis_client, logger
@@ -96,7 +96,7 @@ async def search_for_articles(message: types.Message, state: FSMContext):
         tip_list = pickle.loads(stored_byte_string)
         print('found this query in REDIS')
     except TypeError:
-        tip_list = tips_crud.search_tips(query)
+        tip_list = tips_crud.search_tips_by_query(query)
         byte_string = pickle.dumps(tip_list)
         redis_client.setex(query, 600, byte_string, )
         print('Did not find this query in REDIS')

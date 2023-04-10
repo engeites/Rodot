@@ -23,12 +23,6 @@ class User(Base):
     children = relationship('Child', backref='parent', lazy=False)
     bookmarks = relationship('Bookmark', back_populates='user')
 
-tags_association_table = Table(
-    'tags_association', Base.metadata,
-    Column('tip_id', Integer, ForeignKey('parenting_tips.id')),
-    Column('tag_id', Integer, ForeignKey('tags.id'))
-)
-
 
 class Child(Base):
     __tablename__ = 'children'
@@ -55,17 +49,7 @@ class Bookmark(Base):
     created_at = Column(DateTime, default=datetime.now())
     user = relationship('User', back_populates='bookmarks')
 
-class Tag(Base):
-    __tablename__ = "tags"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    start_age = Column(Integer)
-    end_age = Column(Integer)
-    tips = relationship("ParentingTip", secondary=tags_association_table, back_populates="tags", lazy=False)
 
-
-
-# Define a ParentingTip model
 class ParentingTip(Base):
     __tablename__ = 'parenting_tips'
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -73,13 +57,35 @@ class ParentingTip(Base):
     tip = Column(String, nullable=False)
     age_in_days = Column(String, nullable=False)
     category = Column(String, nullable=False)
-    advertisement = Column(String)
     useful_from_day = Column(Integer)
     useful_until_day = Column(Integer)
     created_at = Column(DateTime)
-    tags = relationship("Tag", secondary=tags_association_table, back_populates="tips", lazy=False)
     media = relationship("Media", backref="tip")
+    advertisement = relationship("Advertisement", uselist=False, back_populates="parenting_tip")
+    ad_logs = relationship("AdvertisementLog", back_populates="parenting_tip")
 
+
+class Advertisement(Base):
+    __tablename__ = 'advertisements'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    image_url = Column(String)
+    ad_url = Column(String)
+    vendor_name = Column(String)
+    start_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    end_date = Column(DateTime)
+    tip_id = Column(Integer, ForeignKey('parenting_tips.id'), unique=True, nullable=False)
+    parenting_tip = relationship("ParentingTip", back_populates="advertisement")
+    logs = relationship("AdvertisementLog", back_populates="ad")
+
+class AdvertisementLog(Base):
+    __tablename__ = 'advertisement_logs'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ad_id = Column(Integer, ForeignKey('advertisements.id'), nullable=False)
+    showed_at = Column(DateTime, nullable=False)
+    ad = relationship("Advertisement", back_populates="logs")
+    parenting_tip_id = Column(Integer, ForeignKey('parenting_tips.id'), nullable=False)
+    parenting_tip = relationship("ParentingTip", back_populates="ad_logs")
 
 class Media(Base):
     __tablename__ = 'media'
