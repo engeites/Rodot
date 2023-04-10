@@ -7,6 +7,7 @@ from aiogram.types import CallbackQuery
 
 from app.database.daily_tips import send_daily_tip_to_user
 from app.database.user_crud import update_user_last_seen
+from app.extentions import logger
 # from app.keyboards.main_keyboards import main_keyboard_registered
 from app.keyboards.inline.main_kb_inline import main_kb_unregistered, main_keyboard_registered
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
@@ -64,6 +65,7 @@ async def profile_start(call: types.CallbackQuery, state: FSMContext):
 
     if not child_exists:
         print(child_exists) # (datetime.datetime(2023, 3, 16, 0, 0), 'male')
+        logger.info(f"Starting process of registering a child for user {call.from_user.id}")
         await call.message.edit_text(registration_texts.start_registration, reply_markup=cancel_kb)
         await state.set_state(ProfileInfo.birth_date.state)
 
@@ -104,10 +106,11 @@ async def city_set(message: types.Message, state: FSMContext):
         user_data['birth_date'],
         user_data['sex'],
     )
-
+    logger.info(f"Added new child for user {message.from_user.id}. Registration process finished successfully.")
     await message.answer(registration_texts.reg_finished, reply_markup=main_keyboard_registered(message.from_user.id))
     await state.finish()
 
+    # TODO: Here need to add additional dialog: Day by day subscription is now free, do you want to activate it?
     # wait for some time and send article after some time, because articles are sent once per day and user may register after that time.
     await sleep(SEND_DAILY_ARTICLE_AFTER_REG)
 
@@ -125,12 +128,14 @@ async def city_set(message: types.Message, state: FSMContext):
 
         if article_to_send['media']:
             await message.answer_photo(article_to_send['media'], caption=message_text)
+            logger.info(f"Sent daily article with name: {article_to_send['header']} to user {message.from_user.id}")
         else:
             await message.answer(message_text)
 
 
 async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):
     await state.finish()
+    logger.info(f"Registration process cancelled for user {call.from_user.id}")
     await call.message.edit_text(registration_texts.cancel_registration, reply_markup=main_kb_unregistered)
 
 

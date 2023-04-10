@@ -4,10 +4,12 @@ from app.database.db import engine
 from datetime import datetime, timedelta
 from sqlalchemy import func, distinct
 
+from app.extentions import logger
+
 Session = sessionmaker(bind=engine)
 
 def log_article_read(user_tg_id, article_id):
-    print(f"Article read by user: {user_tg_id}, article ID = {article_id}")
+    logger.info(f"Tip read by user: {user_tg_id}, Tip ID = {article_id}")
     session = Session()
 
     reading_event = UserArticle(user_id=user_tg_id, article_id=article_id, created_at=datetime.utcnow())

@@ -98,9 +98,10 @@ async def set_age_inline(call: types.CallbackQuery, callback_data: dict, state: 
     article_data = await state.get_data()
 
     success = create_new_article(article_data, from_day, until_day)
-    logger.info(f"Added new article: {success.header} in category {success.category} for age from {success.useful_from_day} to {success.useful_until_day}")
+    logger.info(f"Added new article: {success.header} in category {success.category} for age from {success.useful_from_day} to {success.useful_until_day} by admin {call.from_user.id}")
     if not success:
         await call.message.edit_text("Something went wrong. Article was not saved")
+        logger.error(f"New article: {success.header} created by admin {call.from_user.id} wasn't saved for some reason. Function create_new_article returned False")
         return
 
     await state.finish()

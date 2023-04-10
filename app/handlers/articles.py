@@ -11,6 +11,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.user_crud import update_user_last_seen
+from app.extentions import logger
 from app.keyboards.inline.main_kb_inline import main_keyboard_registered
 from app.database import user_crud, tips_crud
 
@@ -34,6 +35,8 @@ class AgeAndCategory(StatesGroup):
 async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, data: dict|bool = False):
     # TODO: Где то здесь есть баг: если зарегистрироваться, почитать статьи до родов и вернуться, появится эта клава
     #   При этом у аккаунта ещё нет ребёнка, а мы ниже его запросим
+
+    # TODO: Rewrite this function
     if data:
         query_data = {
             'category': data['category'],
@@ -81,6 +84,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
         ))
         await call.message.edit_text(category_introduction, reply_markup=mark)
 
+        logger.info(f"User {call.from_user.id} has chosen category {query_data['category']} and got {tips.count()} articles")
     update_user_last_seen(call.from_user.id)
 
 
@@ -111,6 +115,7 @@ async def save_to_bookmarks(call: types.CallbackQuery, callback_data: dict):
         await call.answer('Добавлено в сохранённые. Вы можете найти эту статью быстрее через меню профиля если вы его открыли.')
         await call.message.edit_reply_markup(reply_markup)
 
+    logger.info(f"User {call.from_user.id} saved tip with ID: {article_id}")
 
 async def already_saved(call: types.CallbackQuery, callback_data: dict):
     print(callback_data)

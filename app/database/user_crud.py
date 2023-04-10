@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import List, Type
 from .models import User, Child, Bookmark, AdminUser
 from .db import engine
-
+# from ..extentions import logger
 
 Session = sessionmaker(bind=engine)
 
@@ -130,7 +130,8 @@ def get_user_child(user_id: int):
         children_info = session.query(Child.age, Child.sex).filter(Child.parent_id == user.id).first()
         return children_info
     else:
-        print("User not found.")
+        # logger.error(f"Try to get user's: {user_id} child failed. User does not have registered child")
+        return False
 
 
 def get_child_advice(session, child_id):

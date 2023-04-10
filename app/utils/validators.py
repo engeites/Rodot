@@ -2,6 +2,9 @@ import datetime
 from datetime import datetime
 from typing import List
 
+from app.extentions import logger
+
+
 def validate_city(given_city: str) -> str | bool:
     options = ["moscow", "saint petersburg", "rostov", "stavropol", "omsk", "tomsk", "pyatigorsk"]
     if given_city.lower() not in options:
@@ -40,16 +43,17 @@ def get_tags_from_str(tags: str) -> List[str]:
 
 
 def calculate_age_in_days(birth_date: datetime) -> int:
-    print(f'got this: {birth_date}')
     today = datetime.now()
     delta = today - birth_date
     num_days = delta.days
+    logger.info(f"Calculating age in days for birthdate: {birth_date}. Got {num_days}")
+
     return num_days
 
 
 def calc_age_range_from_int(age_in_days: int) -> dict:
-    if 1 <= age_in_days <= 30:
-        return {'start': 1, 'end': 30}
+    if 0 <= age_in_days <= 30:
+        return {'start': 0, 'end': 30}
     elif 31 <= age_in_days <= 60:
         return {'start': 31, 'end': 60}
     elif 61 <= age_in_days <= 90:

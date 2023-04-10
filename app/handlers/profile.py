@@ -10,7 +10,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
-from app.database.advice_crud import add_new_advice, get_advice_for_age
+from app.database.advice_crud import add_new_advice
 from app.database.models import ParentingTip
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
@@ -19,10 +19,10 @@ from app.keyboards.inline.bookmarks import add_bookmark_go_back
 from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
 
 from app.database import user_crud, tips_crud
-from app.utils.message_formatters import MyChildMessageFormatter, TipFormatter
+from app.utils.message_formatters import MyChildMessageFormatter, TipRenderer
 from app.texts import bookmark_texts, profile_texts
 
-from app.extentions import redis_client
+from app.extentions import redis_client, logger
 
 show_article_callback = CallbackData('show_article', 'id')
 
@@ -30,6 +30,7 @@ class SearchState(StatesGroup):
     query = State()
 
 async def profile_menu_inline(call: types.CallbackQuery):
+    logger.info(f"User {call.from_user.id} opened profile menu")
     await call.message.edit_text(profile_texts.profile_introduction,
         reply_markup=profile_kb)
 
@@ -45,7 +46,7 @@ async def my_child(call: types.CallbackQuery):
         text="⬆️ В профиль",
         callback_data='⬆️ В профиль'
     ))
-
+    logger.info(f'User {call.from_user.id} checked "My child"')
     await call.message.edit_text(message_text, reply_markup=mark)
 
 
@@ -55,7 +56,10 @@ async def get_my_bookmarks(call: types.CallbackQuery):
     keyboard_with_bookmarks = all_bookmarks_keyboard(user_id)
     if not keyboard_with_bookmarks:
         await call.message.answer(bookmark_texts.no_bookmarks_found)
+        logger.info(f"User {call.from_user.id} checked bookmarks before he added any")
         return
+
+    logger.info(f"User {call.from_user.id} checked his bookmarks")
     await call.message.edit_text(list_of_found_articles, reply_markup=keyboard_with_bookmarks)
 
 
@@ -70,9 +74,9 @@ async def show_bookmarked_tip(call: types.CallbackQuery, callback_data: dict):
 
     tip: ParentingTip = tips_crud.get_tip_by_id(callback_data['tip_id'])
 
-    formatter = TipFormatter(tip)
+    formatter = TipRenderer(tip)
     message_text = formatter.form_final_text()
-
+    logger.info(f"User {call.from_user.id} opened previously added tip: {tip.header}")
     await call.message.edit_text(message_text, reply_markup=mark)
 
 
@@ -114,17 +118,19 @@ async def search_for_articles(message: types.Message, state: FSMContext):
     mark.add(InlineKeyboardButton(text="Назад",
                                   callback_data="⬆️ В профиль"))
     await state.finish()
-
+    logger.info(f"User {message.from_user.id} searched next query: {query}")
     # redis_client.set(query, tip_list)
     await message.answer("Вот что удалось найти по вашему запросу: ", reply_markup=mark)
 
 
-async def load_article(call: CallbackQuery, callback_data: dict):
+async def render_article(call: CallbackQuery, callback_data: dict):
     post_id = callback_data["id"]
     tip: ParentingTip = tips_crud.get_tip_by_id(post_id)
 
-    formatter = TipFormatter(tip)
-    message_text = formatter.form_final_text()
+    renderer = TipRenderer(tip)
+    message_text = renderer.form_final_text()
+
+    logger.info(f"User {call.from_user.id} opened a tip: {tip.header}")
 
     with suppress(MessageNotModified):
         await call.message.edit_text(message_text, reply_markup=add_bookmark_go_back(tip.id))
@@ -132,17 +138,15 @@ async def load_article(call: CallbackQuery, callback_data: dict):
 
 
 async def my_city(call: types.CallbackQuery):
+    logger.info(f"User {call.from_user.id} tried to open 'My city' functionality")
     await call.answer('Раздел "мой город" находится в разработке. Скоро здесь вы сможете найти куда сходить с ребёнком, '
                       'а также новые знакомства!')
 
 
 async def day_by_day(call: types.CallbackQuery):
+    logger.info(f"User {call.from_user.id} tried to open 'Day by day' functionality")
+
     await call.answer('Подписка уже оформлена автоматически')
-
-
-async def test(message: types.Message):
-    add_new_advice(1, 30, "Ребенок совсем маленький и у вас всё хорошо")
-    await message.answer('Done')
 
 
 def register_profile_handlers(dp: Dispatcher):
@@ -150,13 +154,12 @@ def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=['< Назад к списку']))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=["📗 Сохранённые статьи"]))
-    dp.register_callback_query_handler(go_to_profile, Text(equals=["⬆️ В профиль"]))
+    # dp.register_callback_query_handler(go_to_profile, Text(equals=["⬆️ В профиль"]))
     dp.register_callback_query_handler(day_by_day, Text(equals=["🤳🏼 День за днём"]))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())
 
     dp.register_callback_query_handler(start_search, Text(equals="🔎 Поиск по статьям"))
     dp.register_message_handler(search_for_articles, state=SearchState.query)
-    dp.register_message_handler(test, commands=['test'])
-    dp.register_callback_query_handler(load_article, show_article_callback.filter())
+    dp.register_callback_query_handler(render_article, show_article_callback.filter())
 
     dp.register_callback_query_handler(my_city, Text(equals="🏙 Мой город"))

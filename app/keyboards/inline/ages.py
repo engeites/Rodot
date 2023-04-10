@@ -25,4 +25,14 @@ def ages_keyboard():
 
     return mark
 
+
+def before_birth_categories():
+    mark = InlineKeyboardMarkup()
+
+    prepare_to_labor = InlineKeyboardButton(
+        text="Подготовка к родам",
+        callback_data="prepare_to_labor"
+    )
+
+
 ages_keyboard = ages_keyboard()

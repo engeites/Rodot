@@ -2,6 +2,7 @@ from datetime import datetime
 
 from app.database.advice_crud import get_advice_for_age
 from app.database.models import User, Child, ParentingTip
+from app.extentions import logger
 from app.utils.validators import calculate_age_in_days
 from app.texts.profile_texts import my_child, my_child_not_born
 
@@ -75,13 +76,13 @@ class MyChildMessageFormatter:
             return self.form_child_not_born_message()
 
 
-class TipFormatter:
+class TipRenderer:
     def __init__(self, tip: ParentingTip):
         self.tip = tip
 
     def add_advertisement_text(self):
-        print(f"ad: {self.tip.advertisement}")
         if self.tip.advertisement:
+            logger.info(f"Ad from tip: {self.tip.header} was shown")
             return f"\n\n#ad\n{self.tip.advertisement}"
         return False
 
@@ -93,11 +94,15 @@ class TipFormatter:
         text += self.tip.tip
 
         ad_text = self.add_advertisement_text()
+
+        logger.info(f"Rendered tip {self.tip.header}. Tip has ad text")
+
+
         if not ad_text:
+            logger.info(f"Rendered tip {self.tip.header}. Tip has no ads at moment")
             return text
 
         text += ad_text
-
         return text
 
 
