@@ -3,7 +3,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.callback_data import CallbackData
 
+from app.database.ads_crud import count_ad_shows
 from app.database.advice_crud import add_new_advice
 from app.database.models import AdvertisementLog
 from app.database.user_crud import get_active_users
@@ -41,6 +43,7 @@ class Advertisement(StatesGroup):
     confirm = State()
     vendor = State()
 
+
 class DailyArticle(StatesGroup):
     """
     Represents StatesGroup for daily articles
@@ -57,6 +60,10 @@ class Advice(StatesGroup):
     age_range_end = State()
     advice = State()
 
+
+# ------Callback data factories for this module ---------
+check_ad_options_cb = CallbackData('ad_options', 'ad_id', 'vendor', 'tip_id')
+action_on_ad_cb = CallbackData('setup_ad', 'action', 'ad_id')
 
 
 # ----- Handlers for creating normal ParentingTip ------
@@ -347,6 +354,69 @@ async def cancel_new_ad(call: types.CallbackQuery, state: FSMContext):
                                  reply_markup=admin_kb)
 
 
+# Handlers for ads panel
+async def advertisement_control_panel(call: types.CallbackQuery):
+
+    ads = ads_crud.get_all_ads()
+
+    mark = InlineKeyboardMarkup(row_width=1)
+    ad_buttons = [InlineKeyboardButton(text=ad.vendor_name,
+                                       callback_data=check_ad_options_cb.new(ad_id=ad.id,
+                                                                             vendor=ad.vendor_name,
+                                                                             tip_id=ad.tip_id)
+                                       ) for ad in ads]
+
+    cancel = InlineKeyboardButton(text="Назад", callback_data='cancel')
+
+    mark.add(*ad_buttons)
+    mark.add(cancel)
+
+    await call.message.edit_text(f"Список всех активных реклам на данный момент.",
+                                 reply_markup=mark)
+
+
+async def setup_advertisement(call: types.CallbackQuery, callback_data: dict):
+    text = f"""
+ID рекламы: {callback_data['ad_id']} 
+Реклама от заказчика: {callback_data['vendor']}
+Реклама в статье: {callback_data['tip_id']}
+
+Выберите действие.
+    """
+
+    mark = InlineKeyboardMarkup(row_width=2)
+
+    delete_ad = InlineKeyboardButton(text="Удалить рекламу",
+                                     callback_data=action_on_ad_cb.new(action='delete', ad_id=callback_data['ad_id']))
+
+    see_ad_statistics = InlineKeyboardButton(text="Посмотреть статистику",
+                                             callback_data=action_on_ad_cb.new(action='statistics', ad_id=callback_data['ad_id']))
+
+    prolongate_ad = InlineKeyboardButton(text="Продлить срок действия",
+                                         callback_data=action_on_ad_cb.new(action='prolongate', ad_id=callback_data['ad_id']))
+
+    back = InlineKeyboardButton(text="Назад",
+                                callback_data='cancel')
+
+    mark.add(delete_ad, prolongate_ad).add(see_ad_statistics, back)
+
+    await call.message.edit_text(text, reply_markup=mark)
+
+
+async def see_ad_statistics(call: types.CallbackQuery, callback_data: dict):
+    logger.info(f"{callback_data}")
+    stat: dict = count_ad_shows(callback_data['ad_id'])
+
+    text = f"""
+Просмотров рекламы за сегодня: {stat['today']}
+Просмотров рекламы за вчера: {stat['yesterday']}
+Просмотров рекламы за 7 дней: {stat['last_week']}
+Просмотров рекламы за 30 дней: {stat['last_month']}
+Просмотров рекламы за всё время: {stat['all_time']}
+
+    """
+    await call.message.edit_text(text, reply_markup=cancel_kb)
+
 
 # Handlers for admin menu navigation
 async def open_admin_panel(call: types.CallbackQuery):
@@ -364,6 +434,7 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(cancel_any_input, Text(equals="cancel"), state='*')
     dp.register_callback_query_handler(open_admin_panel, Text(equals="admin_menu"))
 
+
     # Handlers for adding new advertisement to ParentingTip:
     dp.register_callback_query_handler(add_new_ad_for_article, add_advertisement_cb.filter(), state="*")
     dp.register_message_handler(add_text_to_ad, state=Advertisement.ad_text)
@@ -372,6 +443,10 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(confirm_new_ad, Text(equals="confirm_new_ad"), state=Advertisement.confirm)
     dp.register_callback_query_handler(cancel_new_ad, Text(equals="cancel_new_ad"), state=Advertisement.confirm)
 
+
+    # Handlers for ads panel
+    dp.register_callback_query_handler(advertisement_control_panel, Text(equals="ad_control_panel"))
+    dp.register_callback_query_handler(setup_advertisement, check_ad_options_cb.filter())
 
     # Handlers for creating normal ParentingTip
     dp.register_callback_query_handler(add_new_article, Text(equals="add_material"))
@@ -399,3 +474,4 @@ def register_admin_hanlders(dp: Dispatcher):
     # Handlers to retrieve analytics
     dp.register_callback_query_handler(get_statistics_by_article, admin_statistics_cb.filter(), state='*')
     dp.register_callback_query_handler(get_active_users_statistics, Text(equals="active_users_statistics"), user_id=ADMINS)
+    dp.register_callback_query_handler(see_ad_statistics, action_on_ad_cb.filter(action='statistics'))

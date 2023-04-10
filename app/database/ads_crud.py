@@ -46,23 +46,22 @@ def add_advertisement_log(parenting_tip_id: int):
     session.add(ad_log)
     session.commit()
 
-
-def count_ad_shows(tip_id: int) -> dict|None:
+def count_ad_shows(ad_id: int) -> dict:
     """
-    Counts the number of times an advertisement was shown for the given ParentingTip ID,
+    Counts the number of times an advertisement was shown for the given Advertisement ID,
     broken down by time period.
     Returns a dictionary with keys 'today', 'yesterday', 'last_week', 'last_month',
     and 'all_time', each containing the respective count as an integer.
     """
-    # Get the ParentingTip instance by ID
+    # Get the Advertisement instance by ID
     session = Session()
 
-    tip: ParentingTip = session.query(ParentingTip).get(tip_id)
-    if not tip:
-        raise ValueError(f"No ParentingTip found with ID {tip_id}")
+    ad: Advertisement = session.query(Advertisement).get(ad_id)
+    if not ad:
+        raise ValueError(f"No Advertisement found with ID {ad_id}")
 
-    if not tip.advertisement:
-        raise ValueError(f"Current Tip has no ad at the moment.")
+    # Get the ParentingTip instance for the Advertisement
+    tip: ParentingTip = ad.parenting_tip
 
     # Get the current time
     now = datetime.now()
@@ -75,32 +74,33 @@ def count_ad_shows(tip_id: int) -> dict|None:
 
     # Get counts for each time period
     today_count = session.query(func.count(AdvertisementLog.id)).filter(
-        AdvertisementLog.tip_id == tip_id,
-        text("DATE_TRUNC('day', advertisement_log.showed_at) = :today")
-    ).params(today=today).scalar()
+        AdvertisementLog.ad_id == ad_id,
+        text("strftime('%Y-%m-%d', advertisement_logs.showed_at) = :today")
+    ).params(today=today.strftime('%Y-%m-%d')).scalar()
 
     yesterday_count = session.query(func.count(AdvertisementLog.id)).filter(
-        AdvertisementLog.tip_id == tip_id,
-        text("DATE_TRUNC('day', advertisement_log.showed_at) = :yesterday")
-    ).params(yesterday=yesterday).scalar()
+        AdvertisementLog.ad_id == ad_id,
+        text("strftime('%Y-%m-%d', advertisement_logs.showed_at) = :yesterday")
+    ).params(yesterday=yesterday.strftime('%Y-%m-%d')).scalar()
 
     last_week_count = session.query(func.count(AdvertisementLog.id)).filter(
-        AdvertisementLog.tip_id == tip_id,
-        text("advertisement_log.showed_at >= :last_week")
+        AdvertisementLog.ad_id == ad_id,
+        text("advertisement_logs.showed_at >= :last_week")
     ).params(last_week=last_week).scalar()
 
     last_month_count = session.query(func.count(AdvertisementLog.id)).filter(
-        AdvertisementLog.tip_id == tip_id,
-        text("advertisement_log.showed_at >= :last_month")
+        AdvertisementLog.ad_id == ad_id,
+        text("advertisement_logs.showed_at >= :last_month")
     ).params(last_month=last_month).scalar()
 
     all_time_count = session.query(func.count(AdvertisementLog.id)).filter(
-        AdvertisementLog.tip_id == tip_id
+        AdvertisementLog.ad_id == ad_id
     ).scalar()
 
     # Create and return the results dictionary
     results = {
         'today': today_count,
+
         'yesterday': yesterday_count,
         'last_week': last_week_count,
         'last_month': last_month_count,
@@ -108,3 +108,11 @@ def count_ad_shows(tip_id: int) -> dict|None:
     }
 
     return results
+
+
+
+def get_all_ads():
+    session = Session()
+    ads = session.query(Advertisement).all()
+    session.close()
+    return ads
