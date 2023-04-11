@@ -16,6 +16,7 @@ from app.keyboards.inline.bookmarks import add_advertisement_cb
 from app.texts.basic import choose_age, choose_category
 
 from app.keyboards.inline.main_kb_inline import initial_kb, main_kb_unregistered, main_keyboard_registered, categories_kb
+from app.keyboards.inline.prenatal_kb import prenatal_kb, prenatal_categories_cb
 
 from app.database import user_crud
 from app.database import tips_crud
@@ -186,8 +187,10 @@ async def show_prenatal_articles_old(call: types.CallbackQuery):
     # await state.finish()
 
 
-async def show_prenatal_articles():
-    tips = tips_crud.get_tips_by_category()
+# async def show_prenatal_articles(call: types.CallbackQuery):
+#     # Show categories for prenatal period
+#     await call.message.edit_text("Здесь перечислены категории статей, которые лучше прочитать до родов",
+#                                  reply_markup=prenatal_kb)
 
 
 def register_basic_handlers(dp: Dispatcher):
@@ -195,7 +198,7 @@ def register_basic_handlers(dp: Dispatcher):
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='🐾 Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, get_ages_cb.filter(from_day='back'), state=AgeAndTheme.from_day)
-    dp.register_callback_query_handler(show_prenatal_articles, get_ages_cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
+    # dp.register_callback_query_handler(show_prenatal_articles, get_ages_cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_age, get_ages_cb.filter(), state=AgeAndTheme.from_day)
 
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES), state=AgeAndTheme.category)

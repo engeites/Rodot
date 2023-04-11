@@ -14,6 +14,7 @@ from app.handlers.articles import register_articles_handlers
 from app.handlers.admin import register_admin_hanlders
 from app.handlers.profile import register_profile_handlers
 from app.handlers.errors import register_user_handlers
+from app.handlers.prenatal import register_prenatal_handlers
 
 from config import API_TOKEN
 from app.database import user_crud
@@ -41,12 +42,16 @@ async def create_bot():
     dp.middleware.setup(ThrottlingMiddleware())
 
     register_admin_hanlders(dp)
+
     register_user_handlers(dp)
+    register_prenatal_handlers(dp)
+    register_basic_handlers(dp)
+
     register_profile_handlers(dp)
     register_update_info_handlers(dp)
     register_registry_handlers(dp)
     register_articles_handlers(dp)
-    register_basic_handlers(dp)
+
 
     scheduler.add_job(send_daily_tips_to_all, 'cron', day_of_week='mon-sun', hour=job_time.hour, minute=job_time.minute,
                       timezone=job_timezone, args=[bot])

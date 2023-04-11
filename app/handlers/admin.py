@@ -88,6 +88,14 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.set_state(Article.category.state)
 
     reply_kb = categories_kb
+    prenatal_due = InlineKeyboardButton(text="Подготовка к родам",
+                                        callback_data='Подготовка к родам')
+    prenatal_house = InlineKeyboardButton(text="Покупки к рождению малыша",
+                                          callback_data="Покупки к рождению малыша")
+    prenatal_psychology = InlineKeyboardButton(text="Подготовка мамы и семьи",
+                                               callback_data="Подготовка мамы и семьи")
+
+    reply_kb.add(prenatal_due, prenatal_psychology, prenatal_house)
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await message.answer("Текст есть. Выберите категорию", reply_markup=reply_kb)
@@ -95,7 +103,6 @@ async def set_body(message: types.Message, state: FSMContext):
 
 async def set_category(call: types.CallbackQuery, state: FSMContext):
     category = call.data
-
 
     await state.update_data(category=validate_category(category))
     await state.set_state(Article.age_range.state)
