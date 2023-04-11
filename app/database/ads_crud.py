@@ -110,6 +110,26 @@ def count_ad_shows(ad_id: int) -> dict:
     return results
 
 
+def delete_advertisement(ad_id: int) -> bool:
+    """
+    Deletes the advertisement with the given ID from the database.
+    Raises a ValueError if no advertisement exists with the given ID.
+    """
+
+    session = Session()
+    # Get the advertisement by ID
+    ad: Advertisement = session.query(Advertisement).get(ad_id)
+    if not ad:
+        raise ValueError(f"No advertisement found with ID {ad_id}")
+
+    # Delete the advertisement
+    session.delete(ad)
+
+    session.query(AdvertisementLog).filter(AdvertisementLog.ad_id == ad_id).delete(synchronize_session=False)
+
+    session.commit()
+    return True
+
 
 def get_all_ads():
     session = Session()

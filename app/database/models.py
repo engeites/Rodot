@@ -81,7 +81,7 @@ class Advertisement(Base):
 class AdvertisementLog(Base):
     __tablename__ = 'advertisement_logs'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ad_id = Column(Integer, ForeignKey('advertisements.id'), nullable=False)
+    ad_id = Column(Integer, ForeignKey('advertisements.id', ondelete='CASCADE'), nullable=True)
     showed_at = Column(DateTime, nullable=False)
     ad = relationship("Advertisement", back_populates="logs")
     parenting_tip_id = Column(Integer, ForeignKey('parenting_tips.id'), nullable=False)

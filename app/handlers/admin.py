@@ -5,7 +5,6 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from app.database.ads_crud import count_ad_shows
 from app.database.advice_crud import add_new_advice
 from app.database.models import AdvertisementLog
 from app.database.user_crud import get_active_users
@@ -405,7 +404,7 @@ ID рекламы: {callback_data['ad_id']}
 
 async def see_ad_statistics(call: types.CallbackQuery, callback_data: dict):
     logger.info(f"{callback_data}")
-    stat: dict = count_ad_shows(callback_data['ad_id'])
+    stat: dict = ads_crud.count_ad_shows(callback_data['ad_id'])
 
     text = f"""
 Просмотров рекламы за сегодня: {stat['today']}
@@ -416,6 +415,25 @@ async def see_ad_statistics(call: types.CallbackQuery, callback_data: dict):
 
     """
     await call.message.edit_text(text, reply_markup=cancel_kb)
+
+
+async def delete_advertisement(call: types.CallbackQuery, callback_data: dict):
+    """
+    handler deletes given advertisement from db
+    :param call:
+    :param callback_data:
+    :return:
+    """
+    deleted = ads_crud.delete_advertisement(callback_data['ad_id'])
+    if deleted:
+        await call.message.edit_text(f"Реклама с айди {callback_data['ad_id']} была удалена.",
+                                     reply_markup=admin_kb)
+        logger.info(f"Admin ID {call.from_user.id} deleted advertisement with ID {callback_data['ad_id']}")
+    else:
+        await call.message.edit_text(f"Произошла ошибка при удалении. Реклама не удалена.",
+                                     reply_markup=admin_kb)
+        logger.error(f"Admin ID {call.from_user.id} tried to delete ad ID {callback_data['ad_id']}. Error occured.")
+
 
 
 # Handlers for admin menu navigation
@@ -447,6 +465,7 @@ def register_admin_hanlders(dp: Dispatcher):
     # Handlers for ads panel
     dp.register_callback_query_handler(advertisement_control_panel, Text(equals="ad_control_panel"))
     dp.register_callback_query_handler(setup_advertisement, check_ad_options_cb.filter())
+    dp.register_callback_query_handler(delete_advertisement, action_on_ad_cb.filter(action='delete'))
 
     # Handlers for creating normal ParentingTip
     dp.register_callback_query_handler(add_new_article, Text(equals="add_material"))
