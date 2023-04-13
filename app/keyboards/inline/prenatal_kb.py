@@ -2,7 +2,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
-from config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES
+from config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES, PRENATAL_CATEGORIES
 from app.extentions import ADMINS
 
 prenatal_categories_cb = CallbackData('prenatal', 'category')
@@ -11,33 +11,18 @@ prenatal_categories_cb = CallbackData('prenatal', 'category')
 def render_prenatal_keyboard() -> InlineKeyboardMarkup:
     mark = InlineKeyboardMarkup()
 
-    prepare_to_due = InlineKeyboardButton(
-        text="Подготовка к родам",
-        callback_data=prenatal_categories_cb.new(
-            category="Подготовка к родам"
-        )
-    )
-
-    prepare_house = InlineKeyboardButton(
-        text="Покупки к рождению малыша",
-        callback_data=prenatal_categories_cb.new(
-            category="Покупки к рождению малыша"
-        )
-    )
-
-    prepare_psychology = InlineKeyboardButton(
-        text="Подготовка мамы и семьи",
-        callback_data=prenatal_categories_cb.new(
-            category="Подготовка мамы и семьи"
-        )
-    )
+    buttons = [InlineKeyboardButton(text=button[0],
+                                    callback_data=prenatal_categories_cb.new(
+                                        category=button[1])
+                                    )
+               for button in PRENATAL_CATEGORIES]
 
     go_back = InlineKeyboardButton(
         text="Назад",
-        callback_data="GoBack"
+        callback_data="На главную"
     )
 
-    mark.add(prepare_to_due, prepare_house).add(prepare_psychology, go_back)
+    mark.add(*buttons).add(go_back)
     return mark
 
 prenatal_kb = render_prenatal_keyboard()

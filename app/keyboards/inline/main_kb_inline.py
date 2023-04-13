@@ -5,14 +5,14 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES
 from app.extentions import ADMINS
 
-buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in INITIAL_CHOICE]
-
-initial_kb = InlineKeyboardMarkup(row_width=2)
-initial_kb.add(*buttons)
+# buttons = [InlineKeyboardButton(text=button[0], callback_data=button[1]) for button in INITIAL_CHOICE]
+#
+# initial_kb = InlineKeyboardMarkup(row_width=2)
+# initial_kb.add(*buttons)
 
 def main_keyboard_unregistered():
 
-    buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in MAIN_KB_UNREG_BTNS]
+    buttons = [InlineKeyboardButton(text=button[0], callback_data=button[1]) for button in INITIAL_CHOICE]
 
     unreg_main_kb = InlineKeyboardMarkup(row_width=2)
     unreg_main_kb.add(*buttons)
@@ -22,14 +22,15 @@ def main_keyboard_unregistered():
 def main_keyboard_registered(user_id: int):
 
     btn_list = CATEGORIES.copy()
-    btn_list.append('🐾 Выбрать возраст')
+    btn_list.append(['🐾 Выбрать возраст', 'Выбрать возраст'])
 
     my_profile_btn = InlineKeyboardButton(text='⬆️ В профиль', callback_data='⬆️ В профиль')
     help_btn = InlineKeyboardButton(text='Помощь', callback_data='Помощь')
     admin_panel_btn = InlineKeyboardButton(text='Админка', callback_data='admin_menu')
 
     reg_main_kb = InlineKeyboardMarkup(row_width=2)
-    main_buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in btn_list]
+
+    main_buttons = [InlineKeyboardButton(text=name[0], callback_data=name[1]) for name in btn_list]
 
     if user_id in ADMINS:
         reg_main_kb.add(admin_panel_btn)
@@ -47,13 +48,13 @@ def show_categories():
 
     categories_kb = InlineKeyboardMarkup(row_width=2)
 
-    main_buttons = [InlineKeyboardButton(text=name, callback_data=name) for name in CATEGORIES]
+    main_buttons = [InlineKeyboardButton(text=name[0], callback_data=name[1]) for name in CATEGORIES]
 
     categories_kb.add(*main_buttons)
     categories_kb.add((cancel))
 
     return categories_kb
 
-main_kb_unregistered = main_keyboard_unregistered()
+initial_kb = main_keyboard_unregistered()
 # main_kb_registered = main_keyboard_registered()
 categories_kb = show_categories()

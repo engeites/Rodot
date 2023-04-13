@@ -10,10 +10,12 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
+from app.database.models import Child
 from app.database.user_crud import update_user_last_seen
 from app.extentions import logger
 from app.keyboards.inline.main_kb_inline import main_keyboard_registered
 from app.database import user_crud, tips_crud
+from app.utils.form_tip_list import form_tip_list
 
 from app.utils.validators import validate_category
 from app.keyboards.inline.bookmarks import already_bookmarked_kb, already_bookmarked_keyboard_from_search
@@ -24,69 +26,46 @@ from app.texts.basic import child_too_old
 
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
-from config import CATEGORIES
+from config import CATEGORIES, CATEGORIES_callback
 
-callback_data = CallbackData('articles', 'id')
 
 
 class AgeAndCategory(StatesGroup):
     data = State()
 
-async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, data: dict|bool = False):
-    # TODO: Где то здесь есть баг: если зарегистрироваться, почитать статьи до родов и вернуться, появится эта клава
-    #   При этом у аккаунта ещё нет ребёнка, а мы ниже его запросим
 
-    # TODO: Rewrite this function
-    if data:
-        query_data = {
-            'category': data['category'],
-            'from_day': data['from_day'],
-            'until_day': data['until_day']
-        }
-    else:
-        tag_list = validate_category(call.data)
+async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, data: dict|bool = False) -> None:
+    """
+    This function forms reply markup with all the tips found in given category and sends it as a reply_markup
+    """
+    user_child: Child = user_crud.get_user_child(call.from_user.id)[0]
+    age_range: dict = calc_age_range_from_int(calculate_age_in_days(user_child))
+    logger.info(f"User {call.from_user.id} child suits age_range: {age_range}")
 
-        # tips = get_all_tips()
-        user_child = user_crud.get_user_child(call.from_user.id)
-        child_age_in_days: int = calculate_age_in_days(user_child[0])
+    if 'error' in age_range:
+        await call.message.edit_text(child_too_old)
+        return
 
-        age_range: dict = calc_age_range_from_int(child_age_in_days)
+    query_data = {
+        'category': call.data,
+        'from_day': age_range['start'],
+        'until_day': age_range['end']
+    }
 
-        try:
-            age = age_range['error']
-            await call.message.edit_text(child_too_old)
-            return
+    await state.set_state(AgeAndCategory.data.state)
+    await state.update_data(data=query_data)
 
-        except KeyError:
-            await state.finish()
+    reply_mark = form_tip_list(query_data)
 
-            query_data = {
-                'category': tag_list,
-                'from_day': age_range['start'],
-                'until_day': age_range['end']
-            }
+    reply_mark.add(InlineKeyboardButton(
+        text="В меню",
+        callback_data='В меню'
+    ))
 
-        await state.set_state(AgeAndCategory.data.state)
-        await state.update_data(data=query_data)
+    await call.message.edit_text(category_introduction, reply_markup=reply_mark)
 
-        mark = InlineKeyboardMarkup()
-        tips = tips_crud.get_tips_by_category(query_data['category'], query_data['from_day'], query_data['until_day'])
-        logger.info(f"Searching for tips with query: 'from_day': {query_data['from_day']}, 'until_day': {query_data['until_day']}, 'category': {query_data['category']}. Found {tips.count()}")
-        for tip in tips:
-            mark.add(InlineKeyboardButton(
-                text=tip.header,
-                callback_data=callback_data.new(str(tip.id))
-            ))
-
-        mark.add(InlineKeyboardButton(
-            text="В меню",
-            callback_data='В меню'
-        ))
-        await call.message.edit_text(category_introduction, reply_markup=mark)
-
-        logger.info(f"User {call.from_user.id} has chosen category {query_data['category']} and got {tips.count()} articles")
+    logger.info(f"User {call.from_user.id} has chosen category {query_data['category']}.")
     update_user_last_seen(call.from_user.id)
-
 
 
 async def back_to_articles(call: types.CallbackQuery, state: FSMContext):
@@ -122,7 +101,7 @@ async def already_saved(call: types.CallbackQuery, callback_data: dict):
     await call.answer('Статья уже была сохранена ранее, вы можете найти её в профиле. Удалить из сохранённых можно там же')
 
 def register_articles_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(show_tips_for_category, Text(equals=CATEGORIES))
+    dp.register_callback_query_handler(show_tips_for_category, Text(equals=CATEGORIES_callback))
     dp.register_callback_query_handler(already_saved, bookmarks_cb.filter(tip_id='0'), state="*")
     dp.register_callback_query_handler(save_to_bookmarks, bookmarks_cb.filter(), state="*")
     # dp.register_callback_query_handler(back_to_articles, Text(equals="Назад"), state=AgeAndCategory.data)

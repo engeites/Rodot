@@ -7,12 +7,12 @@ from aiogram.utils.callback_data import CallbackData
 
 from app.database.advice_crud import add_new_advice
 from app.database.models import AdvertisementLog
-from app.database.user_crud import get_active_users
+from app.database.user_crud import get_active_users, get_user_registration_stats
 from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
 from app.keyboards.inline.main_kb_inline import categories_kb
 from app.utils.time_ranges import get_hours_passed_today
-from app.utils.validators import validate_age, validate_category
+from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
 from app.database.daily_tips_crud import create_daily_tip
 from app.database import db_analytics, ads_crud, tips_crud
@@ -104,7 +104,7 @@ async def set_body(message: types.Message, state: FSMContext):
 async def set_category(call: types.CallbackQuery, state: FSMContext):
     category = call.data
 
-    await state.update_data(category=validate_category(category))
+    await state.update_data(category=category)
     await state.set_state(Article.age_range.state)
 
     reply_kb = ages_keyboard
@@ -220,6 +220,21 @@ async def get_active_users_statistics(call: types.CallbackQuery):
     text = f"""
     За сегодня {active_users_today} пользователей выбирали категорию;
     За 7 дней {active_users_seven_days} пользователей выбирали категорию.
+    """
+
+    await call.message.answer(text)
+
+
+async def get_registration_statistics(call: types.CallbackQuery):
+    statistics: dict = get_user_registration_stats()
+
+
+    text = f"""
+    За сегодня зарегистрировано {statistics['today_count']} пользователей;
+    За прошлый день зарегистрировано {statistics['yesterday_count']} пользователей;
+    За 7 дней зарегистрировано {statistics['seven_days_count']} пользователей;
+    За 30 дней зарегистрировано {statistics['thirty_days_count']} пользователей;
+    За всё время зарегистрировано {statistics['total_count']} пользователей.
     """
 
     await call.message.answer(text)
@@ -500,4 +515,5 @@ def register_admin_hanlders(dp: Dispatcher):
     # Handlers to retrieve analytics
     dp.register_callback_query_handler(get_statistics_by_article, admin_statistics_cb.filter(), state='*')
     dp.register_callback_query_handler(get_active_users_statistics, Text(equals="active_users_statistics"), user_id=ADMINS)
+    dp.register_callback_query_handler(get_registration_statistics, Text(equals="registered_users_statistics"), user_id=ADMINS)
     dp.register_callback_query_handler(see_ad_statistics, action_on_ad_cb.filter(action='statistics'))

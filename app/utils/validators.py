@@ -58,6 +58,10 @@ def calculate_age_in_days(birth_date: datetime) -> int:
 
 
 def calc_age_range_from_int(age_in_days: int) -> dict:
+    # TODO: Return different results if a child is too old or yet to be born more that 100 days after
+
+    if -100 <= age_in_days < 0:
+        return {'start': 0, 'end': 0}
     if 0 <= age_in_days <= 30:
         return {'start': 0, 'end': 30}
     elif 31 <= age_in_days <= 60:

@@ -9,7 +9,7 @@ from app.database.daily_tips import send_daily_tip_to_user
 from app.database.user_crud import update_user_last_seen
 from app.extentions import logger
 # from app.keyboards.main_keyboards import main_keyboard_registered
-from app.keyboards.inline.main_kb_inline import main_kb_unregistered, main_keyboard_registered
+from app.keyboards.inline.main_kb_inline import initial_kb, main_keyboard_registered
 # from app.texts.registration_texts import start_registration, date_input_failed, input_sex, sex_input_failed, input_city
 from app.texts import registration_texts
 
@@ -140,12 +140,12 @@ async def city_set(message: types.Message, state: FSMContext):
 async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):
     await state.finish()
     logger.info(f"Registration process cancelled for user {call.from_user.id}")
-    await call.message.edit_text(registration_texts.cancel_registration, reply_markup=main_kb_unregistered)
+    await call.message.edit_text(registration_texts.cancel_registration, reply_markup=initial_kb)
 
 
 def register_registry_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(cancel_questionnaire,  Text(equals='Отмена'), state='*')
-    dp.register_callback_query_handler(profile_start, Text(equals="📖 Заполнить профиль"), state='*')
+    dp.register_callback_query_handler(profile_start, Text(equals="Заполнить профиль"), state='*')
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)

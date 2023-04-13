@@ -95,8 +95,8 @@ def get_tips_by_category(category: str, start_age: int=1, end_age: int=540) -> l
 
     tip_list = session.query(ParentingTip).filter(
         ParentingTip.category == category,
-        ParentingTip.useful_from_day <= start_age,
-        ParentingTip.useful_until_day >= end_age,
+        ParentingTip.useful_from_day == start_age,
+        ParentingTip.useful_until_day == end_age,
     )
     session.close()
     return tip_list

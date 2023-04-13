@@ -1,9 +1,12 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.utils.callback_data import CallbackData
 
 from app.database import tips_crud
 from app.database.models import ParentingTip
 from app.extentions import logger
-from app.handlers.articles import callback_data
+
+
+render_tip_cb = CallbackData('articles', 'id')
 
 
 def form_tip_list(data: dict) -> InlineKeyboardMarkup:
@@ -16,17 +19,17 @@ def form_tip_list(data: dict) -> InlineKeyboardMarkup:
     for tip in tips:
         mark.add(InlineKeyboardButton(
             text=tip.header,
-            callback_data=callback_data.new(str(tip.id))
+            callback_data=render_tip_cb.new(str(tip.id))
         ))
 
-    mark.add(InlineKeyboardButton(
-        text="< Назад",
-        callback_data="< Назад"
-    ),
-        InlineKeyboardButton(
-            text="На главную",
-            callback_data="На главную"
-        ))
+    # mark.add(InlineKeyboardButton(
+    #     text="< Назад",
+    #     callback_data="< Назад"
+    # ),
+    #     InlineKeyboardButton(
+    #         text="На главную",
+    #         callback_data="На главную"
+    #     ))
 
     logger.info(f"Searching for tips with query: {data}. Found {tips.count()}")
 

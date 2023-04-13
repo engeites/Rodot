@@ -10,7 +10,9 @@ def build_admin_kb():
     add_short_advice = InlineKeyboardButton("Добавить совет", callback_data="add_advice")
     del_short_advice = InlineKeyboardButton("Удалить совет", callback_data="del_advice")
 
-    statistics = InlineKeyboardButton("Активные пользователи", callback_data='active_users_statistics')
+
+    active_users_stat = InlineKeyboardButton("Активные пользователи", callback_data='active_users_statistics')
+    registered_users_stat = InlineKeyboardButton("Статистика регистраций", callback_data='registered_users_statistics')
     ad_panel = InlineKeyboardButton("Управление рекламой", callback_data='ad_control_panel')
     back = InlineKeyboardButton("На главную", callback_data="На главную")
 
@@ -21,7 +23,7 @@ def build_admin_kb():
     mark.add(add_short_advice, del_short_advice)
     mark.add(ad_panel)
 
-    mark.add(statistics)
+    mark.add(active_users_stat, registered_users_stat)
     mark.add(back)
     return mark
 

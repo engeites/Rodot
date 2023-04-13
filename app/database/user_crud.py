@@ -160,6 +160,29 @@ def get_all_admins() -> list:
     return session.query(AdminUser).all()
 
 
+def get_user_registration_stats():
+    session = Session()
+
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
+    seven_days_ago = today - timedelta(days=7)
+    thirty_days_ago = today - timedelta(days=30)
+
+    today_count = session.query(User).filter(User.created_at >= today).count()
+    yesterday_count = session.query(User).filter(User.created_at >= yesterday, User.created_at < today).count()
+    seven_days_count = session.query(User).filter(User.created_at >= seven_days_ago).count()
+    thirty_days_count = session.query(User).filter(User.created_at >= thirty_days_ago).count()
+    total_count = session.query(User).count()
+
+    return {
+        "today_count": today_count,
+        "yesterday_count": yesterday_count,
+        "seven_days_count": seven_days_count,
+        "thirty_days_count": thirty_days_count,
+        "total_count": total_count,
+    }
+
+
 def update_user_city(telegram_user_id, new_city):
     session = Session()
     user = session.query(User).filter_by(telegram_user_id=telegram_user_id).first()
