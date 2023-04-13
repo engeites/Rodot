@@ -32,7 +32,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
-from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
+from app.texts.basic import welcome_unreg, welcome_reg, use_instructions, help_message_reg, help_message_unreg
 
 from config import CATEGORIES, ADMINS
 from app.utils.form_tip_list import render_tip_cb

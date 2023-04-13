@@ -30,7 +30,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
-from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
+from app.texts.basic import welcome_unreg, welcome_reg, use_instructions, help_message_reg, help_message_unreg
 
 from config import ADMINS, CATEGORIES_callback
 from app.utils.form_tip_list import render_tip_cb
@@ -53,9 +53,10 @@ async def send_welcome(message: types.Message):
     new_user = user_crud.create_user(user_id)
 
     if new_user['already_existed']:
-        logger.info(f"Start command sent by user {user_id}. User already exists in db. @{message.from_user.username}")
-        await message.answer(welcome_reg, reply_markup=main_keyboard_registered(message.from_user.id))
-        return
+        if new_user['passed_reg']:
+            logger.info(f"Start command sent by user {user_id}. User already exists in db. @{message.from_user.username}")
+            await message.answer(welcome_reg, reply_markup=main_keyboard_registered(message.from_user.id))
+            return
 
     logger.info(f"New user registered: {user_id}. @{message.from_user.username}")
     await message.answer(welcome_unreg, reply_markup=initial_kb)
@@ -167,7 +168,7 @@ async def render_tip(call: types.CallbackQuery, callback_data: dict):
 
 async def send_our_philosophy(call: types.CallbackQuery):
     with suppress(MessageNotModified):
-        await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
+        await call.message.edit_text(use_instructions, reply_markup=initial_kb)
 
 
 async def send_help_message_reg(call: types.CallbackQuery):
@@ -201,7 +202,7 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state=AgeAndTheme.category)
     dp.register_callback_query_handler(go_back_to_articles, Text(equals="Назад"), state="*")
 
-    dp.register_callback_query_handler(send_our_philosophy, Text(equals="🧑🏻‍🎓 Наша философия"))
+    dp.register_callback_query_handler(send_our_philosophy, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))

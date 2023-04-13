@@ -28,7 +28,10 @@ def create_user(telegram_user_id: int) -> dict:
     user: User = get_user_by_tg_id(telegram_user_id)
 
     if user:
-        return {'user': user, 'already_existed': True}
+        if user.passed_basic_reg:
+            return {'user': user, 'already_existed': True, 'passed_reg' : True}
+        else:
+            return {'user': user, 'already_existed': True, 'passed_reg': False}
 
     new_user = User(telegram_user_id=telegram_user_id, created_at=datetime.utcnow())
 

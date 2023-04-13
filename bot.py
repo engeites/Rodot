@@ -55,7 +55,8 @@ async def create_bot():
 
     scheduler.add_job(send_daily_tips_to_all, 'cron', day_of_week='mon-sun', hour=job_time.hour, minute=job_time.minute,
                       timezone=job_timezone, args=[bot])
-
+    # scheduler.add_job(send_daily_tips_to_all, 'interval', minutes=1, args=[bot])
+    scheduler.start()
     await dp.start_polling(timeout=600)
 
 

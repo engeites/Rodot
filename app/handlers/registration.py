@@ -39,7 +39,7 @@ class ProfileInfo(StatesGroup):
 
 
 def validate_sex(given_sex: str) -> str | bool:
-    options = ['male', 'female']
+    options = ['male', 'female', 'unknown']
     if given_sex.lower() in options:
         return given_sex
     return False
@@ -64,7 +64,6 @@ async def profile_start(call: types.CallbackQuery, state: FSMContext):
 
 
     if not child_exists:
-        print(child_exists) # (datetime.datetime(2023, 3, 16, 0, 0), 'male')
         logger.info(f"Starting process of registering a child for user {call.from_user.id}")
         await call.message.edit_text(registration_texts.start_registration, reply_markup=cancel_kb)
         await state.set_state(ProfileInfo.birth_date.state)
@@ -137,6 +136,10 @@ async def city_set(message: types.Message, state: FSMContext):
             await message.answer(message_text)
 
 
+async def input_error(message: types.Message, state: FSMContext):
+    await message.answer(registration_texts.sex_input_failed)
+
+
 async def cancel_questionnaire(call: CallbackQuery, state: FSMContext):
     await state.finish()
     logger.info(f"Registration process cancelled for user {call.from_user.id}")
@@ -149,4 +152,5 @@ def register_registry_handlers(dp: Dispatcher):
     dp.register_message_handler(birthday_set, state=ProfileInfo.birth_date)
     dp.register_callback_query_handler(sex_set, child_sex.cb.filter(), state=ProfileInfo.sex)
     dp.register_message_handler(city_set, state=ProfileInfo.city)
+    dp.register_message_handler(input_error, state=[ProfileInfo.sex])
 

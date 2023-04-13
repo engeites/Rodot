@@ -68,14 +68,6 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
     update_user_last_seen(call.from_user.id)
 
 
-async def back_to_articles(call: types.CallbackQuery, state: FSMContext):
-    print('got this callback at: ')
-    print(datetime.datetime.now())
-    data = await state.get_data()
-
-    await show_tips_for_category(call, state=state, data=data)
-
-
 async def to_main_menu(call: types.CallbackQuery, state: FSMContext):
     await state.finish()
     await call.message.edit_text("Возвращаемся в главное меню", reply_markup=main_keyboard_registered(call.from_user.id))

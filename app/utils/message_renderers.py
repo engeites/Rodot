@@ -13,7 +13,8 @@ class MyChildMessageFormatter:
     """
     sex_options = {
         'male': 'мальчик',
-        'female': 'девочка'
+        'female': 'девочка',
+        'unknown': 'неизвестно'
     }
 
     def __init__(self, user: User):
