@@ -32,9 +32,8 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from app.texts.main_menu import main_menu_unregistered, main_menu_registered
 from app.texts.basic import welcome_unreg, welcome_reg, our_philosophy, help_message_reg, help_message_unreg
 
-from config import CATEGORIES, ADMINS, CATEGORIES_callback
+from config import ADMINS, CATEGORIES_callback
 from app.utils.form_tip_list import render_tip_cb
-# callback_data = CallbackData('articles', 'id')
 from app.keyboards.inline.bookmarks import add_bookmark_keyboard
 
 from app.handlers.articles import AgeAndCategory
@@ -170,11 +169,14 @@ async def send_our_philosophy(call: types.CallbackQuery):
     with suppress(MessageNotModified):
         await call.message.edit_text(our_philosophy, reply_markup=initial_kb)
 
+
 async def send_help_message_reg(call: types.CallbackQuery):
     await call.message.edit_text(help_message_reg, reply_markup=main_keyboard_registered(call.from_user.id))
 
+
 async def send_help_message_unreg(call: types.CallbackQuery):
     await call.message.edit_text(help_message_unreg, reply_markup=initial_kb)
+
 
 async def void_messages(message: types.Message):
     print("Got this message that does not suit other handlers: ")
@@ -182,44 +184,11 @@ async def void_messages(message: types.Message):
     await message.answer("на " + message.text + " у меня нет ответа")
 
 
-async def show_prenatal_articles_old(call: types.CallbackQuery):
-    # TODO: Totally remake this function. Add additional categories to this prenatal section
-    tips = tips_crud.get_tips_by_multiple_tags(['До родов'], 0, 0)
-
-    mark = InlineKeyboardMarkup()
-
-    for tip in tips:
-        mark.add(InlineKeyboardButton(
-            text=tip.header,
-            callback_data=render_tip_cb.new(str(tip.id))
-        ))
-
-    mark.add(InlineKeyboardButton(
-        text="Назад",
-        callback_data="Назад"
-    ),
-        InlineKeyboardButton(
-            text="На главную",
-            callback_data="На главную"
-        ))
-
-    # Return list of articles in inline keyboard
-    await call.message.edit_text(f"По выбранным фильтрам есть следующие статьи", reply_markup=mark)
-    # await state.finish()
-
-
-# async def show_prenatal_articles(call: types.CallbackQuery):
-#     # Show categories for prenatal period
-#     await call.message.edit_text("Здесь перечислены категории статей, которые лучше прочитать до родов",
-#                                  reply_markup=prenatal_kb)
-
-
 def register_basic_handlers(dp: Dispatcher):
     dp.register_message_handler(send_welcome, commands=['start'])
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, get_ages_cb.filter(from_day='back'), state=AgeAndTheme.from_day)
-    # dp.register_callback_query_handler(show_prenatal_articles, get_ages_cb.filter(from_day='0', until_day='0'), state=AgeAndTheme.from_day)
     dp.register_callback_query_handler(get_age, get_ages_cb.filter(), state=AgeAndTheme.from_day)
 
     dp.register_callback_query_handler(get_category, Text(equals=CATEGORIES_callback), state=AgeAndTheme.category)

@@ -2,10 +2,9 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
-from typing import List, Type
+from typing import Type
 from .models import User, Child, Bookmark, AdminUser
 from .db import engine
-# from ..extentions import logger
 
 Session = sessionmaker(bind=engine)
 
@@ -40,28 +39,6 @@ def create_user(telegram_user_id: int) -> dict:
     return {'user': new_user, 'already_existed': False}
 
 
-def create_user_old(telegram_user_id: int, created_at: datetime) -> tuple[User, str]:
-    session = Session()
-    user_exists: User = get_user_by_tg_id(telegram_user_id)
-    if not user_exists or not user_exists.passed_basic_reg:
-        comment = "new"
-        user = User(telegram_user_id=telegram_user_id, created_at=created_at)
-        session.add(user)
-        session.commit()
-        session.refresh(user)
-        session.close()
-        return user, comment
-    comment = "exists"
-    return user_exists, comment
-
-
-def get_all_users() -> list[Type[User]]:
-    session = Session()
-    users = session.query(User).all()
-    session.close()
-    return users
-
-
 def update_user1(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> User:
     session = Session()
     user = session.query(User).filter(User.id == user_id).first()
@@ -74,9 +51,17 @@ def update_user1(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> 
 
 
 def update_user(user_id: int, field: str, new_value) -> User:
-    print(user_id)
+    """
+    This function updates a column value in User model.
+    :param user_id: User.telegram_user_id
+    :param field: Which column to update. Should be same as db column name
+    :param new_value:
+    :return: User model
+    """
     session = Session()
+
     user = session.query(User).filter(User.telegram_user_id == user_id).first()
+
     if field == 'city':
         user.city = new_value
 
@@ -88,11 +73,9 @@ def update_user(user_id: int, field: str, new_value) -> User:
 
 def add_child(user_id: int, birth_date: datetime, sex: str):
     db = Session()
-    try:
-        # TODO: Если юзер вручную вобьет команду запускающую этот хэндлер, то сможет создать ещё одну запись в базе с ребенком.
-        #   нужно проверять есть ли уже ребенок у юзера и если да, возвращать отписку с приглашением изменить данные в профиле
 
-        user = get_user_by_tg_id(user_id)
+    try:
+        user: User = get_user_by_tg_id(user_id)
 
         child = Child(
             age=birth_date,
@@ -103,16 +86,17 @@ def add_child(user_id: int, birth_date: datetime, sex: str):
         db.add(child)
         user.children.append(child)
         user.passed_basic_reg = True
+
         db.commit()
         db.refresh(user)
         return child
+
+    except IntegrityError:
+        # TODO: Need logging here
+        db.rollback()
+
     finally:
         db.close()
-
-    # except:
-    #     print("Something bad happened when adding child")
-    #     return False
-
 
 def add_bookmark(user_id: int, tip_id: int):
     session = Session()
@@ -128,6 +112,7 @@ def add_bookmark(user_id: int, tip_id: int):
     session.commit()
     session.refresh(user)
     session.close()
+
 
 def get_my_bookmarks(user_id: int):
     session = Session()

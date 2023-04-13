@@ -2,13 +2,8 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
-from config import INITIAL_CHOICE, MAIN_KB_UNREG_BTNS, CATEGORIES
+from config import INITIAL_CHOICE, CATEGORIES
 from app.extentions import ADMINS
-
-# buttons = [InlineKeyboardButton(text=button[0], callback_data=button[1]) for button in INITIAL_CHOICE]
-#
-# initial_kb = InlineKeyboardMarkup(row_width=2)
-# initial_kb.add(*buttons)
 
 def main_keyboard_unregistered():
 
@@ -56,5 +51,4 @@ def show_categories():
     return categories_kb
 
 initial_kb = main_keyboard_unregistered()
-# main_kb_registered = main_keyboard_registered()
 categories_kb = show_categories()

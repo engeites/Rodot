@@ -4,9 +4,8 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 
-from app.utils.validators import validate_city
 from app.keyboards.inline.update_info import cb, edit_info_keyboard
-from app.database.user_crud import get_user_by_id, update_user
+from app.database.user_crud import update_user
 
 from app.keyboards.inline.profile_kb_inline import profile_kb
 

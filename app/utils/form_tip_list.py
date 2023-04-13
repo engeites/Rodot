@@ -22,15 +22,6 @@ def form_tip_list(data: dict) -> InlineKeyboardMarkup:
             callback_data=render_tip_cb.new(str(tip.id))
         ))
 
-    # mark.add(InlineKeyboardButton(
-    #     text="< Назад",
-    #     callback_data="< Назад"
-    # ),
-    #     InlineKeyboardButton(
-    #         text="На главную",
-    #         callback_data="На главную"
-    #     ))
-
     logger.info(f"Searching for tips with query: {data}. Found {tips.count()}")
 
     return mark
