@@ -50,13 +50,15 @@ class AgeAndTheme(StatesGroup):
 
 async def send_welcome(message: types.Message):
     user_id = message.from_user.id
-    created_at = datetime.datetime.now()
-    user, comment = user_crud.create_user(user_id, created_at)
-    if comment == 'exists':
+
+    new_user = user_crud.create_user(user_id)
+
+    if new_user['already_existed']:
         logger.info(f"Start command sent by user {user_id}. User already exists in db. @{message.from_user.username}")
         await message.answer(welcome_reg, reply_markup=main_keyboard_registered(message.from_user.id))
         return
-    logger.info(f"New user registered: {user_id}. {message.from_user.get_mention()}")
+
+    logger.info(f"New user registered: {user_id}. @{message.from_user.username}")
     await message.answer(welcome_unreg, reply_markup=initial_kb)
 
 

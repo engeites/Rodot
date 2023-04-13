@@ -24,7 +24,23 @@ def get_user_by_tg_id(user_id: int) -> User:
     return user
 
 
-def create_user(telegram_user_id: int, created_at: datetime) -> tuple[User, str]:
+def create_user(telegram_user_id: int) -> dict:
+    session = Session()
+    user: User = get_user_by_tg_id(telegram_user_id)
+
+    if user:
+        return {'user': user, 'already_existed': True}
+
+    new_user = User(telegram_user_id=telegram_user_id, created_at=datetime.utcnow())
+
+    session.add(new_user)
+    session.commit()
+    session.close()
+
+    return {'user': new_user, 'already_existed': False}
+
+
+def create_user_old(telegram_user_id: int, created_at: datetime) -> tuple[User, str]:
     session = Session()
     user_exists: User = get_user_by_tg_id(telegram_user_id)
     if not user_exists or not user_exists.passed_basic_reg:
