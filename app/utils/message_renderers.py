@@ -7,7 +7,7 @@ from app.extentions import logger
 from app.utils.validators import calculate_age_in_days
 from app.texts.profile_texts import my_child, my_child_not_born
 
-class MyChildMessageFormatter:
+class MyChildMessageRenderer:
     """
     This class is used to form final message text when Мой ребёнок is chosen in Profile menu
     """
@@ -18,6 +18,7 @@ class MyChildMessageFormatter:
     }
 
     def __init__(self, user: User):
+        logger.info(f"Created MyChildMessageRenderer to send info to user {user.telegram_user_id}")
         self.user = user
 
     def get_readable_date(self, birth_date: datetime) -> str:
@@ -80,13 +81,13 @@ class MyChildMessageFormatter:
 
 class TipRenderer:
     def __init__(self, tip: ParentingTip):
+        logger.info("Created ParentingTip renderer")
         self.tip = tip
 
     def add_advertisement_text(self):
         if self.tip.advertisement:
             logger.info(f"Ad from tip: {self.tip.header} was shown")
 
-            # ads_crud.add_advertisement_log(self.tip.id)
             ads_crud.add_advertisement_log(self.tip.id)
             return f"\n\n#ad\n{self.tip.advertisement.name}"
         return False

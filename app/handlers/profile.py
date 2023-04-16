@@ -19,7 +19,7 @@ from app.keyboards.inline.bookmarks import add_bookmark_go_back
 from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
 
 from app.database import user_crud, tips_crud
-from app.utils.message_renderers import MyChildMessageFormatter, TipRenderer
+from app.utils.message_renderers import MyChildMessageRenderer, TipRenderer
 from app.texts import bookmark_texts, profile_texts
 
 from app.extentions import redis_client, logger
@@ -38,7 +38,7 @@ async def profile_menu_inline(call: types.CallbackQuery):
 async def my_child(call: types.CallbackQuery):
     user = user_crud.get_user_by_tg_id(call.from_user.id)
 
-    formatter = MyChildMessageFormatter(user)
+    formatter = MyChildMessageRenderer(user)
     message_text = formatter.form_final_message()
 
     mark = InlineKeyboardMarkup()

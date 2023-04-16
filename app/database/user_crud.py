@@ -42,7 +42,7 @@ def create_user(telegram_user_id: int) -> dict:
     return {'user': new_user, 'already_existed': False}
 
 
-def update_user1(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> User:
+def update_user_old(user_id: int, telegram_user_id: str, telegram_chat_id: str) -> User:
     session = Session()
     user = session.query(User).filter(User.id == user_id).first()
     user.telegram_user_id = telegram_user_id
@@ -67,6 +67,8 @@ def update_user(user_id: int, field: str, new_value) -> User:
 
     if field == 'city':
         user.city = new_value
+    if field == 'subscription_end':
+        user.subscription_end = new_value
 
     session.commit()
     session.refresh(user)

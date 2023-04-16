@@ -172,7 +172,8 @@ async def send_our_philosophy(call: types.CallbackQuery):
 
 
 async def send_help_message_reg(call: types.CallbackQuery):
-    await call.message.edit_text(help_message_reg, reply_markup=main_keyboard_registered(call.from_user.id))
+    with suppress(MessageNotModified):
+        await call.message.edit_text(help_message_reg, reply_markup=main_keyboard_registered(call.from_user.id))
 
 
 async def send_help_message_unreg(call: types.CallbackQuery):

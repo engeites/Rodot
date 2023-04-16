@@ -63,14 +63,12 @@ async def send_daily_tips_to_all(bot: aiogram.Bot):
     session.close()
 
 
-def send_daily_tip_to_user(user_id: int):
+def find_daily_tip_for_user(user_id: int):
     session = Session()
     user_child = user_crud.get_user_child(user_id)
     user_child_birthday = user_child[0]
-    print(user_child, user_child_birthday)
 
     age_in_days = calculate_age_in_days(user_child_birthday)
 
     daily_tip = session.query(DailyTip).filter(DailyTip.age_in_days == age_in_days).first()
-    print(daily_tip)
     return daily_tip

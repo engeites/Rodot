@@ -61,20 +61,11 @@ PROFILE_KB_BTNS = [
     'На главную',
 ]
 
+
 AVAILABLE_AGES = [
     ('До родов', 0, 0),
-    ('0-1 месяц', 1, 30),
-    ('1-2 месяца', 31, 60),
-    ('2-3 месяца', 61, 90),
-    ('3-4 месяца', 91, 120),
-    ('4-5 месяцев', 121, 150),
-    ('5-6 месяцев', 151, 180),
-]
-
-AVAILABLE_AGES_initial = [
-    ('До родов', 0, 0),
     ('Новорожденным', 0, 30),
-    ('1-3 месяца', 31, 90),
+    ('2-3 месяца', 31, 90),
     ('4-6 месяцев', 91, 180)
 ]
 
@@ -86,4 +77,6 @@ ADMINS = [1142511147]
 CITIES = []
 
 # After what time daily article should be shown after registration
-SEND_DAILY_ARTICLE_AFTER_REG = 5
+SEND_DAILY_ARTICLE_AFTER_REG = 30
+
+BASIC_DAY_TO_DAY_SUBSCRIPTION_LENGTH = 30
