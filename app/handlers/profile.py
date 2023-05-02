@@ -22,7 +22,7 @@ from app.database import user_crud, tips_crud
 from app.utils.message_renderers import MyChildMessageRenderer, TipRenderer
 from app.texts import bookmark_texts, profile_texts
 
-from app.extentions import redis_client, logger
+from app.extentions import logger
 
 show_article_callback = CallbackData('show_article', 'id')
 
@@ -91,15 +91,7 @@ async def start_search(call: types.CallbackQuery, state: FSMContext):
 
 async def search_for_articles(message: types.Message, state: FSMContext):
     query = message.text
-    try:
-        stored_byte_string = redis_client.get(query)
-        tip_list = pickle.loads(stored_byte_string)
-        print('found this query in REDIS')
-    except TypeError:
-        tip_list = tips_crud.search_tips_by_query(query)
-        byte_string = pickle.dumps(tip_list)
-        redis_client.setex(query, 600, byte_string, )
-        print('Did not find this query in REDIS')
+    tip_list = tips_crud.search_tips_by_query(query)
 
     if len(tip_list) == 0:
         await message.answer(no_articles_found, reply_markup=profile_kb)
@@ -119,7 +111,6 @@ async def search_for_articles(message: types.Message, state: FSMContext):
                                   callback_data="⬆️ В профиль"))
     await state.finish()
     logger.info(f"User {message.from_user.id} searched next query: {query}")
-    # redis_client.set(query, tip_list)
     await message.answer("Вот что удалось найти по вашему запросу: ", reply_markup=mark)
 
 
