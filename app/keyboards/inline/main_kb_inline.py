@@ -51,4 +51,3 @@ def show_categories():
     return categories_kb
 
 initial_kb = main_keyboard_unregistered()
-categories_kb = show_categories()

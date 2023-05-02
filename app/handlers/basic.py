@@ -15,7 +15,7 @@ from app.keyboards.inline.bookmarks import add_advertisement_cb
 
 from app.texts.basic import choose_age, choose_category
 
-from app.keyboards.inline.main_kb_inline import initial_kb, initial_kb, main_keyboard_registered, categories_kb
+from app.keyboards.inline.main_kb_inline import initial_kb, main_keyboard_registered, show_categories
 from app.keyboards.inline.prenatal_kb import prenatal_kb, prenatal_categories_cb
 
 from app.database import user_crud
@@ -74,7 +74,7 @@ async def get_age(call: types.CallbackQuery, callback_data: dict, state: FSMCont
     end_age = callback_data['until_day']
 
     await state.update_data(from_day=start_age, until_day=end_age)
-    await call.message.edit_text(choose_category, reply_markup=categories_kb)
+    await call.message.edit_text(choose_category, reply_markup=show_categories())
     await state.set_state(AgeAndTheme.category.state)
 
     logger.info(f"User {call.from_user.id} chose age from {start_age} to {end_age} days old")
@@ -136,7 +136,7 @@ async def  go_back_to_articles(call: types.CallbackQuery, state: FSMContext):
 
 async def go_back_to_categories(call: types.CallbackQuery, state: FSMContext):
     await state.set_state(AgeAndTheme.category.state)
-    await call.message.edit_text(choose_category, reply_markup=categories_kb)
+    await call.message.edit_text(choose_category, reply_markup=show_categories())
 
 
 async def go_to_main(call: types.CallbackQuery, state: FSMContext):

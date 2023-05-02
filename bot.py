@@ -5,6 +5,7 @@ from app.database.daily_tips import send_daily_tips_to_all
 from app.utils.apschedule import scheduler, job_timezone, job_time
 
 from aiogram import Bot, Dispatcher
+from aiogram import executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 
 from app.handlers.registration import register_registry_handlers
@@ -29,6 +30,8 @@ async def create_bot():
     # Настройка логирования в stdout
     logging.basicConfig(
         level=logging.INFO,
+        filename='rodot.log',
+        filemode='a',
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
     logger.error("Starting bot")

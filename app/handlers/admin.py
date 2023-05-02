@@ -10,7 +10,7 @@ from app.database.models import AdvertisementLog
 from app.database.user_crud import get_active_users, get_user_registration_stats
 from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
-from app.keyboards.inline.main_kb_inline import categories_kb
+from app.keyboards.inline.main_kb_inline import show_categories
 from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
@@ -95,7 +95,7 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.update_data(tip=body)
     await state.set_state(Article.category.state)
 
-    reply_kb = categories_kb.copy()
+    reply_kb = show_categories()
     prenatal_due = InlineKeyboardButton(text="Подготовка к родам",
                                         callback_data='Подготовка к родам')
     prenatal_house = InlineKeyboardButton(text="Покупки к рождению малыша",
