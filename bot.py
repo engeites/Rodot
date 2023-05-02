@@ -18,14 +18,13 @@ from app.handlers.errors import register_user_handlers
 from app.handlers.prenatal import register_prenatal_handlers
 
 from config import API_TOKEN
-from app.database import user_crud
 from app.middlewares.throttling import ThrottlingMiddleware
 from app.middlewares.all_callbacks import BigBrother
 
 from app.extentions import logger, ADMINS
 
 
-async def create_bot():
+def create_bot():
 
     # Настройка логирования в stdout
     logging.basicConfig(
@@ -34,7 +33,7 @@ async def create_bot():
         filemode='a',
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
     )
-    logger.error("Starting bot")
+    logger.info("Starting bot")
 
     logger.info(f"list of admins: {ADMINS}")
 
@@ -60,19 +59,22 @@ async def create_bot():
                       timezone=job_timezone, args=[bot])
     # scheduler.add_job(send_daily_tips_to_all, 'interval', minutes=1, args=[bot])
     scheduler.start()
-    await dp.start_polling(timeout=600)
+    # await dp.start_polling(timeout=60)
+    # executor.start_polling(dp, skip_updates=True)
+    return dp
 
+
+def on_startup():
+    print("Bot started")
 
 
 if __name__ == '__main__':
-    asyncio.run(create_bot())
+    # dispatcher = asyncio.run(create_bot())
+    dispatcher = create_bot()
+    try:
+        executor.start_polling(dispatcher,
+                               skip_updates=True,
+                               on_startup=on_startup())
 
-
-
-
-
-
-#
-# if __name__ == '__main__':
-#     # create_webhook_bot()
-#     # asyncio.run(create_bot())
+    except Exception as e:
+        logger.error(e)
