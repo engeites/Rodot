@@ -9,7 +9,7 @@ prenatal_categories_cb = CallbackData('prenatal', 'category')
 
 
 def render_prenatal_keyboard() -> InlineKeyboardMarkup:
-    mark = InlineKeyboardMarkup()
+    mark = InlineKeyboardMarkup(row_width=1)
 
     buttons = [InlineKeyboardButton(text=button[0],
                                     callback_data=prenatal_categories_cb.new(

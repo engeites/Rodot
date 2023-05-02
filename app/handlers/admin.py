@@ -53,6 +53,15 @@ class DailyArticle(StatesGroup):
     media = State()
 
 
+class OneTimeMessage(StatesGroup):
+    """
+    Represents StatesGroup for one-time-message sending
+    """
+    body = State()
+    media = State()
+    confirm = State()
+
+
 # StatesGroup for Short Advice
 class Advice(StatesGroup):
     age_range_start = State()
@@ -69,7 +78,6 @@ action_on_ad_cb = CallbackData('setup_ad', 'action', 'ad_id')
 async def add_new_article(call: types.CallbackQuery, state: FSMContext):
 
     await state.finish()
-    # This should filter users and respond to admin only
 
     await call.message.answer("Добавляем новую статью.\n\n Для начала введите заголовок", reply_markup=cancel_kb)
     await state.set_state(Article.header.state)
@@ -87,7 +95,7 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.update_data(tip=body)
     await state.set_state(Article.category.state)
 
-    reply_kb = categories_kb
+    reply_kb = categories_kb.copy()
     prenatal_due = InlineKeyboardButton(text="Подготовка к родам",
                                         callback_data='Подготовка к родам')
     prenatal_house = InlineKeyboardButton(text="Покупки к рождению малыша",
@@ -457,11 +465,59 @@ async def delete_advertisement(call: types.CallbackQuery, callback_data: dict):
         logger.error(f"Admin ID {call.from_user.id} tried to delete ad ID {callback_data['ad_id']}. Error occured.")
 
 
+# Handlers for sending one-time message to all users
+async def send_one_time_message(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer("Вы собираетесь отправить сообщение всем пользователям. Если планируется картинка, отправьте "
+                              "сначала её без описания", reply_markup=cancel_kb)
+    await state.set_state(OneTimeMessage.media.state)
+
+
+async def set_one_time_ad_media(message: types.Message, state: FSMContext):
+    file_id = message.photo[-1].file_id
+    await message.answer("Получил картинку. Текст описания к ней не может превышать  1 024 символа. Отправьте текст.",
+                         reply_markup=cancel_kb)
+
+    await state.update_data(media=file_id)
+    await state.set_state(OneTimeMessage.body.state)
+
+
+async def set_one_time_ad_body(message: types.Message, state: FSMContext):
+    ad_body = message.text
+    await state.update_data(body=ad_body)
+    await state.set_state(OneTimeMessage.body.state)
+    await message.answer('Получил данные статьи. Посмотрите, всё ли верно и, если да, нажмите "Подтвердить"')
+
+
+    confirm_sending = InlineKeyboardButton(text="Подтвердить", callback_data="confirm_ad_sending")
+    cancel_sending = InlineKeyboardButton(text="Отмена", callback_data="cancel_ad_sending")
+    mark = InlineKeyboardMarkup().add(confirm_sending, cancel_sending)
+
+    ad_data = await state.get_data()
+    mediafile = ad_data['media']
+
+    if not mediafile:
+        await message.answer(ad_body, reply_markup=mark)
+        await state.set_state(OneTimeMessage.confirm.state)
+        return
+
+    await message.answer_photo(mediafile, caption=ad_body, reply_markup=mark)
+    await state.set_state(OneTimeMessage.confirm.state)
+
+
+async def confirm_one_time_msg_sending(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer("Here I send message to all of the users in the database")
+    await state.finish()
+
+
+async def cancel_one_time_msg_sending(call: types.CallbackQuery, state: FSMContext):
+    await call.message.answer("Отправка сообщения всем пользователям отменена")
+    # Sending message payload to separate function which uses bot obj to send
+    await state.finish()
+
 
 # Handlers for admin menu navigation
 async def open_admin_panel(call: types.CallbackQuery):
     await call.message.edit_text("Добро пожаловать в админ панель", reply_markup=admin_kb)
-
 
 
 async def cancel_any_input(call: types.CallbackQuery, state: FSMContext):
@@ -473,6 +529,13 @@ def register_admin_hanlders(dp: Dispatcher):
     # Handlers for admin menu navigation
     dp.register_callback_query_handler(cancel_any_input, Text(equals="cancel"), state='*')
     dp.register_callback_query_handler(open_admin_panel, Text(equals="admin_menu"))
+
+    # Handlers for sending one-time message to all users:
+    dp.register_callback_query_handler(send_one_time_message, Text(equals="send_one_time_media"), state="*")
+    dp.register_message_handler(set_one_time_ad_media, content_types=['photo'], state=OneTimeMessage.media)
+    dp.register_message_handler(set_one_time_ad_body, state=OneTimeMessage.body)
+    dp.register_callback_query_handler(confirm_one_time_msg_sending, Text(equals="confirm_ad_sending"), state=OneTimeMessage.confirm)
+    dp.register_callback_query_handler(cancel_one_time_msg_sending, Text(equals="cancel_ad_sending"), state=OneTimeMessage.confirm)
 
 
     # Handlers for adding new advertisement to ParentingTip:
