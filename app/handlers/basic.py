@@ -34,7 +34,7 @@ from app.texts.basic import welcome_unreg, welcome_reg, use_instructions, help_m
 
 from config import ADMINS, CATEGORIES_callback
 from app.utils.form_tip_list import render_tip_cb
-from app.keyboards.inline.bookmarks import add_bookmark_keyboard
+from app.keyboards.inline.bookmarks import article_actions_keyboard
 
 from app.handlers.articles import AgeAndCategory
 
@@ -158,9 +158,9 @@ async def render_tip(call: types.CallbackQuery, callback_data: dict):
     message_text = formatter.form_final_text()
 
     if call.from_user.id in ADMINS:
-        await call.message.edit_text(message_text, reply_markup=add_bookmark_keyboard(tip.id, admin=True))
+        await call.message.edit_text(message_text, reply_markup=article_actions_keyboard(tip.id, admin=True))
     else:
-        await call.message.edit_text(message_text, reply_markup=add_bookmark_keyboard(tip.id))
+        await call.message.edit_text(message_text, reply_markup=article_actions_keyboard(tip.id))
 
     db_analytics.log_article_read(call.from_user.id, tip.id)
     logger.info(f"User {call.from_user.id} read tip: {tip.header}")

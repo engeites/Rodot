@@ -2,12 +2,10 @@ from datetime import datetime
 
 from sqlalchemy.orm import sessionmaker, subqueryload, joinedload
 from sqlalchemy import or_
-from sqlalchemy.sql import text, func, and_
 from typing import List
-from .models import ParentingTip, AdvertisementLog
+from .models import ParentingTip
 from .db import engine
 
-from app.utils.validators import get_tags_from_str
 
 Session = sessionmaker(bind=engine)
 
@@ -88,6 +86,23 @@ def get_tip_by_id(tip_id: int) -> ParentingTip:
         return parenting_tip
     finally:
         session.close()
+
+
+def update_tip_text(tip_id: int, new_text: str):
+    session = Session()
+    session.query(ParentingTip).filter(ParentingTip.id == tip_id).update(
+        {ParentingTip.tip: new_text},
+        synchronize_session=False
+    )
+    session.commit()
+
+
+def delete_parenting_tip(tip_id: int):
+    session = Session()
+    tip = session.query(ParentingTip).get(tip_id)
+    if tip:
+        session.delete(tip)
+        session.commit()
 
 
 def get_tips_by_category(category: str, start_age: int=1, end_age: int=540) -> list:

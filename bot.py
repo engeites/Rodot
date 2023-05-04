@@ -26,14 +26,8 @@ from app.extentions import logger, ADMINS
 
 def create_bot():
 
-    # Настройка логирования в stdout
-    logging.basicConfig(
-        level=logging.INFO,
-        filename='rodot.log',
-        filemode='a',
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    )
-    logger.info("Starting bot")
+
+    logger.warning("Starting bot")
 
     logger.info(f"list of admins: {ADMINS}")
 
@@ -65,7 +59,7 @@ def create_bot():
 
 
 def on_startup():
-    print("Bot started")
+    logger.info("Bot has started")
 
 
 if __name__ == '__main__':

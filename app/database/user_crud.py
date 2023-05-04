@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import sessionmaker
 from typing import Type
 from .models import User, Child, Bookmark, AdminUser
@@ -8,6 +9,25 @@ from .db import engine
 
 Session = sessionmaker(bind=engine)
 
+
+def get_all_users() -> list:
+    session = Session()
+    # users = session.query(User).all()
+    # users = session.query(User).filter(User.is_banned == False, User.blocked_bot == False).with_entities(
+    #     User.telegram_user_id).all()
+
+    users = session.query(User).filter(
+        or_(
+            User.is_banned == False,
+            User.is_banned.is_(None)
+        ),
+        or_(
+            User.blocked_bot == False,
+            User.blocked_bot.is_(None)
+        )
+    ).with_entities(User.telegram_user_id).all()
+    session.close()
+    return users
 
 def get_user_by_id(user_id: int) -> User:
     session = Session()
@@ -240,3 +260,15 @@ def get_active_users(hours_days: str, time_range: int) -> int:
     # Query the database for active users
     active_users = session.query(User).filter(User.last_seen >= time_range).all()
     return len(active_users)
+
+
+def mark_user_that_blocked_bot(user_id: int):
+    session = Session()
+
+    try:
+        user = session.query(User).filter_by(telegram_user_id=user_id).one()
+        user.blocked_bot = True
+        session.commit()
+        return True
+    except NoResultFound:
+        return False

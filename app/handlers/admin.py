@@ -1,3 +1,4 @@
+import aiogram.utils.exceptions
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -6,30 +7,42 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
 from app.database.advice_crud import add_new_advice
-from app.database.models import AdvertisementLog
+from app.database.models import AdvertisementLog, ParentingTip
 from app.database.user_crud import get_active_users, get_user_registration_stats
 from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
 from app.keyboards.inline.main_kb_inline import show_categories
+from app.utils.message_renderers import TipRenderer
 from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
 from app.database.daily_tips_crud import create_daily_tip
-from app.database import db_analytics, ads_crud, tips_crud
+from app.database import db_analytics, ads_crud, tips_crud, user_crud
 
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
-from app.keyboards.inline.bookmarks import admin_statistics_cb, add_bookmark_keyboard, add_advertisement_cb
+from app.keyboards.inline.main_kb_inline import main_keyboard_registered
+from app.keyboards.inline.bookmarks import admin_statistics_cb, article_actions_keyboard,\
+    add_advertisement_cb, edit_tip_cb, delete_tip_cb
 
 
 # StatesGroup for normal articles
 class Article(StatesGroup):
     """
-    Represents StatesGroup for normal ParentinTip
+    Represents StatesGroup for normal ParentingTip
     """
     header = State()
     tip = State()
     category = State()
     age_range = State()
+
+
+class EditArticle(StatesGroup):
+    new_text = State()
+    confirm = State()
+
+
+class DeleteArticle(StatesGroup):
+    confirm = State()
 
 
 class Advertisement(StatesGroup):
@@ -217,7 +230,7 @@ async def get_statistics_by_article(call: types.CallbackQuery, callback_data: di
     {analytic_data['total']} за всё время;
     """
 
-    await call.message.edit_text(text, reply_markup=add_bookmark_keyboard(article_id))
+    await call.message.edit_text(text, reply_markup=article_actions_keyboard(article_id))
 
 
 async def get_active_users_statistics(call: types.CallbackQuery):
@@ -297,6 +310,95 @@ async def set_advice(message: types.Message, state: FSMContext):
                          f"{data['age_range_start']} и {data['age_range_end']} дней")
 
     await state.finish()
+
+
+# Handlers for deleting a tip
+async def delete_tip(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    await state.finish()
+    tip_id = callback_data['tip_id']
+
+    await state.update_data(tip_id=tip_id)
+
+
+    mark = InlineKeyboardMarkup()
+    confirm = InlineKeyboardButton(
+        text="Подтвердить",
+        callback_data="confirm_deleting_tip"
+    )
+    cancel = InlineKeyboardButton(
+        text="Отмена",
+        callback_data="cancel_deleting_tip"
+    )
+    mark.add(confirm, cancel)
+
+    await state.set_state(DeleteArticle.confirm.state)
+    await call.message.edit_text("Вы уверены, что хотите удалить совет?", reply_markup=mark)
+
+
+async def confirm_deleting_tip(call: types.CallbackQuery, state: FSMContext):
+    state_data = await state.get_data()
+    tip_id = state_data['tip_id']
+
+    tips_crud.delete_tip(tip_id)
+    await call.message.edit_text("Совет был удалён", reply_markup=main_keyboard_registered(call.from_user.id))
+    await state.finish()
+
+
+async def cancel_deleting_tip(call: types.CallbackQuery, state: FSMContext):
+    await call.message.edit_text("Удаление отменено", reply_markup=main_keyboard_registered(call.from_user.id))
+    await state.finish()
+
+
+# Handlers for editing tip text
+async def start_tip_content_editing(call: types.CallbackQuery, callback_data: dict, state: FSMContext):
+    await state.finish()
+
+    tip_id = callback_data['tip_id']
+    tip = tips_crud.get_tip_by_id(tip_id)
+
+    formatter = TipRenderer(tip)
+    message_text: str = formatter.form_final_text()
+
+    await call.message.edit_text(message_text)
+    await call.message.answer("Выше то, как статья выглядит сейчас. \nПришлите отредактированный текст новым сообщением")
+
+    await state.update_data(tip=tip)
+    await state.set_state(EditArticle.new_text.state)
+
+
+
+async def update_tip(message: types.Message, state: FSMContext):
+    edited_text = message.text
+    await state.update_data(new_text=edited_text)
+
+    mark = InlineKeyboardMarkup()
+    confirm = InlineKeyboardButton(
+        text="Подтвердить",
+        callback_data="confirm_edited_tip"
+    )
+    cancel = InlineKeyboardButton(
+        text="Отмена",
+        callback_data="cancel_edited_tip"
+    )
+    mark.add(confirm, cancel)
+
+    await message.answer("Получил обновлённый текст. Посмотрите на сообщение выше и подтвердите либо отмените редактирование",
+                         reply_markup=mark)
+    await state.set_state(EditArticle.confirm.state)
+
+
+async def confirm_edited_tip(call: types.CallbackQuery, state: FSMContext):
+    print("edit tip confirmation ran")
+    tip_info = await state.get_data()
+    tip_id: ParentingTip = tip_info['tip'].id
+
+    tips_crud.update_tip_text(tip_id, tip_info['new_text'])
+    await call.message.edit_text("Текст статьи обновлён", reply_markup=main_keyboard_registered(call.from_user.id))
+    await state.finish()
+
+async def cancel_edited_tip(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    await call.message.edit_text("Обновление статьи отменено", reply_markup=main_keyboard_registered(call.from_user.id))
 
 
 # Handlers for adding advertisements
@@ -471,6 +573,8 @@ async def send_one_time_message(call: types.CallbackQuery, state: FSMContext):
                               "сначала её без описания", reply_markup=cancel_kb)
     await state.set_state(OneTimeMessage.media.state)
 
+    logger.warning(f"Admin ID {call.from_user.id} starts process of sending message to all users")
+
 
 async def set_one_time_ad_media(message: types.Message, state: FSMContext):
     file_id = message.photo[-1].file_id
@@ -503,9 +607,25 @@ async def set_one_time_ad_body(message: types.Message, state: FSMContext):
     await message.answer_photo(mediafile, caption=ad_body, reply_markup=mark)
     await state.set_state(OneTimeMessage.confirm.state)
 
+    logger.info("Prepared a text for sending to all users. Waiting for confirmation")
+
 
 async def confirm_one_time_msg_sending(call: types.CallbackQuery, state: FSMContext):
-    await call.message.answer("Here I send message to all of the users in the database")
+    users_list = user_crud.get_all_users()
+    article_data = await state.get_data()
+    has_media = article_data.get('media')
+    if not has_media:
+        for user in users_list:
+            await call.bot.send_message(user.telegram_user_id, article_data['body'])
+    else:
+        for user in users_list:
+            try:
+                await call.bot.send_photo(user[0], article_data['media'], caption=article_data['body'])
+            except aiogram.utils.exceptions.ChatNotFound:
+                continue
+
+    logger.warning(f"Sent a message with content: \n{article_data['body']} \nto all users")
+    await call.bot.send_message(ADMINS[0], "Message sent successfully to all users")
     await state.finish()
 
 
@@ -537,6 +657,16 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(confirm_one_time_msg_sending, Text(equals="confirm_ad_sending"), state=OneTimeMessage.confirm)
     dp.register_callback_query_handler(cancel_one_time_msg_sending, Text(equals="cancel_ad_sending"), state=OneTimeMessage.confirm)
 
+    # Handlers for editing Tip text:
+    dp.register_callback_query_handler(start_tip_content_editing, edit_tip_cb.filter(), state="*")
+    dp.register_message_handler(update_tip, state=EditArticle.new_text)
+    dp.register_callback_query_handler(confirm_edited_tip, Text(equals="confirm_edited_tip"), state=EditArticle.confirm)
+    dp.register_callback_query_handler(cancel_edited_tip, Text(equals="cancel_edited_tip"), state=EditArticle.confirm)
+
+    # Handlers for deleting Tip:
+    dp.register_callback_query_handler(delete_tip, delete_tip_cb.filter(), state="*")
+    dp.register_callback_query_handler(confirm_deleting_tip, Text(equals="confirm_deleting_tip"), state=DeleteArticle.confirm)
+    dp.register_callback_query_handler(cancel_deleting_tip, Text(equals="cancel_deleting_tip"), state=DeleteArticle.confirm)
 
     # Handlers for adding new advertisement to ParentingTip:
     dp.register_callback_query_handler(add_new_ad_for_article, add_advertisement_cb.filter(), state="*")

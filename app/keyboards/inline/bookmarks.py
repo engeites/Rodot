@@ -9,9 +9,11 @@ bookmarks_cb = CallbackData("bookmark", "tip_id", 'place')
 bookmark_link_cb = CallbackData('link_to_tip', 'tip_id')
 admin_statistics_cb = CallbackData('tip_statistics', 'tip_id')
 add_advertisement_cb = CallbackData('new_ad', 'tip_id')
+edit_tip_cb = CallbackData('edit_tip', 'tip_id')
+delete_tip_cb = CallbackData('delete_tip', 'tip_id')
 
 
-def add_bookmark_keyboard(tip_id, admin: bool = False):
+def article_actions_keyboard(tip_id, admin: bool = False):
     mark = InlineKeyboardMarkup()
 
     add_bookmark = InlineKeyboardButton(
@@ -26,9 +28,11 @@ def add_bookmark_keyboard(tip_id, admin: bool = False):
 
     mark.add(add_bookmark, go_to_main)
 
+    mark.add(InlineKeyboardButton(text="-------", callback_data="empty"))
+
     if admin:
         add_bookmark = InlineKeyboardButton(
-            text="Посмотреть статистику",
+            text="Статистика",
             callback_data=admin_statistics_cb.new(
                 tip_id=tip_id
             )
@@ -39,7 +43,21 @@ def add_bookmark_keyboard(tip_id, admin: bool = False):
                         tip_id=tip_id
                     ))
 
-        mark.add(add_bookmark, add_new_ad)
+        edit_tip = InlineKeyboardButton(
+                    text="Редактировать",
+                    callback_data=edit_tip_cb.new(
+                        tip_id=tip_id
+                    )
+        )
+
+        delete_tip = InlineKeyboardButton(
+                    text="Удалить",
+                    callback_data=delete_tip_cb.new(
+                        tip_id=tip_id
+                    )
+        )
+
+        mark.add(add_bookmark, add_new_ad, edit_tip, delete_tip)
     return mark
 
 

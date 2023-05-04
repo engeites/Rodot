@@ -66,7 +66,6 @@ class MyChildMessageRenderer:
             self.sex_options[child.sex],
             self.form_advice_text()
         )
-        # text += "\n\n"
         return text
 
     def form_final_message(self):
