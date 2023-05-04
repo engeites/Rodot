@@ -71,10 +71,12 @@ def on_startup():
 if __name__ == '__main__':
     # dispatcher = asyncio.run(create_bot())
     dispatcher = create_bot()
-    try:
-        executor.start_polling(dispatcher,
-                               skip_updates=True,
-                               on_startup=on_startup())
+    while True:
+        try:
+            executor.start_polling(dispatcher,
+                                   skip_updates=True,
+                                   on_startup=on_startup())
 
-    except Exception as e:
-        logger.error(e)
+        except Exception as e:
+            logger.error(e)
+            dispatcher.bot.send_message(ADMINS[0], f"BOT IS DOWN\n\n{e}")

@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.dispatcher.filters import Text
 
 from app.handlers.basic import AgeAndTheme
-from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
+from app.keyboards.inline.ages import get_ages_cb
 
 from app.keyboards.inline.prenatal_kb import prenatal_kb, prenatal_categories_cb
 

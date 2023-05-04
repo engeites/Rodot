@@ -33,6 +33,3 @@ def before_birth_categories():
         text="Подготовка к родам",
         callback_data="prepare_to_labor"
     )
-
-
-ages_keyboard = ages_keyboard()

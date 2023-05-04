@@ -115,7 +115,7 @@ async def set_category(call: types.CallbackQuery, state: FSMContext):
     await state.update_data(category=category)
     await state.set_state(Article.age_range.state)
 
-    reply_kb = ages_keyboard
+    reply_kb = ages_keyboard()
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await call.message.edit_text("Категория есть. Выберите возраст",

@@ -64,7 +64,7 @@ async def send_welcome(message: types.Message):
 
 async def show_ages_keyboard(call: types.CallbackQuery, state: FSMContext):
     await state.set_state(AgeAndTheme.from_day.state)
-    await call.message.edit_text(choose_age, reply_markup=ages_keyboard)
+    await call.message.edit_text(choose_age, reply_markup=ages_keyboard())
 
     logger.info(f"User {call.from_user.id} looks for tips for different ages")
 
