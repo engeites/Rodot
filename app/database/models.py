@@ -62,7 +62,7 @@ class ParentingTip(Base):
     created_at = Column(DateTime)
     media = relationship("Media", backref="tip")
     advertisement = relationship("Advertisement", uselist=False, back_populates="parenting_tip")
-    ad_logs = relationship("AdvertisementLog", back_populates="parenting_tip")
+    ad_logs = relationship("AdvertisementLog", back_populates="parenting_tip", cascade="all, delete-orphan")
 
 
 class Advertisement(Base):

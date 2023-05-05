@@ -11,20 +11,16 @@ from aiogram.utils.exceptions import MessageNotModified
 from app.extentions import logger
 from app.database.user_crud import update_user_last_seen, check_if_user_passed_reg
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
-from app.keyboards.inline.bookmarks import add_advertisement_cb
 
 from app.texts.basic import choose_age, choose_category
 
 from app.keyboards.inline.main_kb_inline import initial_kb, main_keyboard_registered, show_categories
-from app.keyboards.inline.prenatal_kb import prenatal_kb, prenatal_categories_cb
 
 from app.database import user_crud
 from app.database import tips_crud
 from app.database import db_analytics
 from app.utils.form_tip_list import form_tip_list
 from app.utils.message_renderers import TipRenderer
-
-from app.utils.validators import validate_category
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -149,6 +145,16 @@ async def go_to_main(call: types.CallbackQuery, state: FSMContext):
         await call.message.edit_text(main_menu_unregistered, reply_markup=initial_kb)
 
 
+async def open_main_menu(message: types.Message, state: FSMContext):
+    await state.finish()
+
+    logger.info("Finished previous state")
+    user_registered = user_crud.check_if_user_passed_reg(message.from_user.id)
+    if user_registered:
+        await message.answer(main_menu_registered, reply_markup=main_keyboard_registered(message.from_user.id))
+    else:
+        await message.answer(main_menu_unregistered, reply_markup=initial_kb)
+
 async def render_tip(call: types.CallbackQuery, callback_data: dict):
     post_id = callback_data["id"]
 
@@ -207,5 +213,5 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))
-    # dp.register_message_handler(go_to_main, commands=['cancel'], state="*")
+    dp.register_message_handler(open_main_menu, commands=['menu'], state="*")
     dp.register_message_handler(void_messages)

@@ -1,3 +1,5 @@
+import asyncio
+
 import aiogram.utils.exceptions
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -621,6 +623,7 @@ async def confirm_one_time_msg_sending(call: types.CallbackQuery, state: FSMCont
         for user in users_list:
             try:
                 await call.bot.send_photo(user[0], article_data['media'], caption=article_data['body'])
+                await asyncio.sleep(0.1)
             except aiogram.utils.exceptions.ChatNotFound:
                 continue
 

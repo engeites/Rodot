@@ -10,18 +10,6 @@ from .db import engine
 Session = sessionmaker(bind=engine)
 
 
-def create_tip(header: str, tip_text: str, tag_names: List[str], age_in_days: int):
-    db = Session()
-    tip = ParentingTip(age_in_days=age_in_days, header=header, tip=tip_text)
-    for tag_name in tag_names:
-        tag = Tag(name=tag_name)
-        tip.tags.append(tag)
-        db.add(tag)
-    db.add(tip)
-    db.commit()
-    db.refresh(tip)
-    return tip
-
 def create_new_article(article_data: dict, from_day: int, until_day: int) -> ParentingTip:
     db = Session()
     current_date = datetime.now()
