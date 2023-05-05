@@ -4,8 +4,7 @@ from contextlib import suppress
 from aiogram.utils.exceptions import MessageNotModified
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import Text
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from aiogram.utils.callback_data import CallbackData
+from aiogram.types import InlineKeyboardButton
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
@@ -14,20 +13,18 @@ from app.database.models import Child
 from app.database.user_crud import update_user_last_seen
 from app.extentions import logger
 from app.keyboards.inline.main_kb_inline import main_keyboard_registered
-from app.database import user_crud, tips_crud
+from app.database import user_crud
 from app.utils.form_tip_list import form_tip_list
 
-from app.utils.validators import validate_category
 from app.keyboards.inline.bookmarks import already_bookmarked_kb, already_bookmarked_keyboard_from_search
 from app.keyboards.inline.bookmarks import bookmarks_cb
 
 from app.texts.article_search_texts import category_introduction
-from app.texts.basic import child_too_old
+from app.texts.basic import child_too_old, yet_to_be_born
 
 from app.utils.validators import calculate_age_in_days, calc_age_range_from_int
 
-from config import CATEGORIES, CATEGORIES_callback
-
+from config import CATEGORIES_callback
 
 
 class AgeAndCategory(StatesGroup):
@@ -43,8 +40,13 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
     logger.info(f"User {call.from_user.id} child suits age_range: {age_range}")
 
     if 'error' in age_range:
-        await call.message.edit_text(child_too_old)
-        return
+        error_type = age_range['error']
+
+        if error_type == "too old":
+            await call.message.edit_text(child_too_old)
+            return
+        elif error_type == 'not born':
+            await call.message.edit_text(yet_to_be_born)
 
     query_data = {
         'category': call.data,
@@ -96,5 +98,4 @@ def register_articles_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(show_tips_for_category, Text(equals=CATEGORIES_callback))
     dp.register_callback_query_handler(already_saved, bookmarks_cb.filter(tip_id='0'), state="*")
     dp.register_callback_query_handler(save_to_bookmarks, bookmarks_cb.filter(), state="*")
-    # dp.register_callback_query_handler(back_to_articles, Text(equals="Назад"), state=AgeAndCategory.data)
     dp.register_callback_query_handler(to_main_menu, Text(equals="В меню"), state='*')

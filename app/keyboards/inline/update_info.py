@@ -6,10 +6,15 @@ cb = CallbackData("edit", "field", "alias")
 def edit_info_keyboard():
     mark = InlineKeyboardMarkup()
 
-    city_button = InlineKeyboardButton(
+    city_change_button = InlineKeyboardButton(
         text="Изменить город",
         callback_data=cb.new(field="city", alias="city")
     )
 
-    mark.add(city_button)
+    birthdate_change_button = InlineKeyboardButton(
+        text="Изменить дату рождения ребёнка",
+        callback_data=cb.new(field="birthdate", alias="birthdate")
+    )
+
+    mark.add(city_change_button).add(birthdate_change_button)
     return mark

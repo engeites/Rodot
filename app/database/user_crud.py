@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from typing import Type
 from .models import User, Child, Bookmark, AdminUser
 from .db import engine
+from app.extentions import logger
 
 Session = sessionmaker(bind=engine)
 
@@ -90,6 +91,7 @@ def update_user(user_id: int, field: str, new_value) -> User:
     if field == 'subscription_end':
         user.subscription_end = new_value
 
+
     session.commit()
     session.refresh(user)
     session.close()
@@ -146,6 +148,30 @@ def get_my_bookmarks(user_id: int):
     session.close()
     return bookmarks
 
+def update_users_child_birthdate(user_id: int, new_birthdate: datetime) -> bool:
+
+    if not isinstance(new_birthdate, datetime):
+        logger.error(f"new_birthdate is not a datetime object. User ID: {user_id}")
+        return False
+
+    session = Session()
+    user = session.query(User).filter_by(telegram_user_id=user_id).first()
+
+    # If the user is not found, return None
+    if not user:
+        logger.error(f"Trying to get user ID {user_id} from db. User does not exist")
+        return False
+
+    # Get the first child associated with the user
+    try:
+        child = user.children[0]
+        child.age = new_birthdate
+        session.commit()
+        return True
+    except IndexError as e:
+        logger.error(f"Trying to get a child of user ID {user_id}. Has no child. \nException: {e}")
+        return False
+
 
 def get_user_child(user_id: int):
     session = Session()
@@ -156,7 +182,7 @@ def get_user_child(user_id: int):
         children_info = session.query(Child.age, Child.sex).filter(Child.parent_id == user.id).first()
         return children_info
     else:
-        # logger.error(f"Try to get user's: {user_id} child failed. User does not have registered child")
+        logger.error(f"Try to get user's: {user_id} child failed. User does not have registered child")
         return False
 
 
@@ -181,9 +207,7 @@ def set_user_as_admin(user_id: int) -> None:
     session.close()
 
 
-def get_all_admins() -> list:
-    session = Session()
-    return session.query(AdminUser).all()
+
 
 
 def get_user_registration_stats():

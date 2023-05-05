@@ -88,7 +88,7 @@ def add_bookmark_go_back(tip_id):
     )
     go_to_main = InlineKeyboardButton(
         text="⬆️ В профиль",
-        callback_data="⬆️ В профиль"
+        callback_data="В профиль"
     )
 
     mark.add(add_bookmark, go_to_main)
@@ -105,7 +105,7 @@ def already_bookmarked_keyboard_from_search():
     )
     go_to_main = InlineKeyboardButton(
         text="⬆️ В профиль",
-        callback_data="⬆️ В профиль"
+        callback_data="В профиль"
     )
 
     mark.add(add_bookmark, go_to_main)
@@ -137,7 +137,7 @@ def all_bookmarks_keyboard(user_id: int):
 
     mark.add(InlineKeyboardButton(
         text= "В профиль",
-        callback_data="⬆️ В профиль")
+        callback_data="В профиль")
     )
 
     return mark

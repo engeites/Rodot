@@ -35,8 +35,6 @@ from app.keyboards.inline.bookmarks import article_actions_keyboard
 from app.handlers.articles import AgeAndCategory
 
 
-# TODO: There is a bug: if baby's age in days = 0, bot says that he is too old to use this bot
-
 class AgeAndTheme(StatesGroup):
     from_day = State()
     until_day = State()

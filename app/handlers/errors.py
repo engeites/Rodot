@@ -6,7 +6,6 @@ from app.extentions import logger
 
 
 async def error_bot_blocked(update: types.Update, exception: BotBlocked):
-    # TODO: Придумать и добавить обработку ботом блокировки
     # Update: объект события от Telegram. Exception: объект исключения
     # Здесь можно как-то обработать блокировку, например, удалить пользователя из БД
     # print(f"Меня заблокировал пользователь!\nСообщение: {update}\nОшибка: {exception}")

@@ -10,7 +10,6 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
-from app.database.advice_crud import add_new_advice
 from app.database.models import ParentingTip
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
@@ -44,7 +43,7 @@ async def my_child(call: types.CallbackQuery):
     mark = InlineKeyboardMarkup()
     mark.add(InlineKeyboardButton(
         text="⬆️ В профиль",
-        callback_data='⬆️ В профиль'
+        callback_data='В профиль'
     ))
     logger.info(f'User {call.from_user.id} checked "My child"')
     await call.message.edit_text(message_text, reply_markup=mark)
@@ -108,7 +107,7 @@ async def search_for_articles(message: types.Message, state: FSMContext):
     mark = InlineKeyboardMarkup(row_width=1)
     mark.add(*buttons)
     mark.add(InlineKeyboardButton(text="Назад",
-                                  callback_data="⬆️ В профиль"))
+                                  callback_data="В профиль"))
     await state.finish()
     logger.info(f"User {message.from_user.id} searched next query: {query}")
     await message.answer("Вот что удалось найти по вашему запросу: ", reply_markup=mark)
@@ -141,11 +140,10 @@ async def day_by_day(call: types.CallbackQuery):
 
 
 def register_profile_handlers(dp: Dispatcher):
-    dp.register_callback_query_handler(profile_menu_inline, Text(equals="⬆️ В профиль"))
+    dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
     dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=['< Назад к списку']))
     dp.register_callback_query_handler(get_my_bookmarks, Text(equals=["📗 Сохранённые статьи"]))
-    # dp.register_callback_query_handler(go_to_profile, Text(equals=["⬆️ В профиль"]))
     dp.register_callback_query_handler(day_by_day, Text(equals=["🤳🏼 День за днём"]))
     dp.register_callback_query_handler(show_bookmarked_tip, bookmark_link_cb.filter())
 

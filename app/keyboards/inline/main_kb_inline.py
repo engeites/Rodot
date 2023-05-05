@@ -19,7 +19,7 @@ def main_keyboard_registered(user_id: int):
     btn_list = CATEGORIES.copy()
     btn_list.append(['🐾 Выбрать возраст', 'Выбрать возраст'])
 
-    my_profile_btn = InlineKeyboardButton(text='⬆️ В профиль', callback_data='⬆️ В профиль')
+    my_profile_btn = InlineKeyboardButton(text='⬆️ В профиль', callback_data='В профиль')
     help_btn = InlineKeyboardButton(text='Помощь', callback_data='Помощь')
     admin_panel_btn = InlineKeyboardButton(text='Админка', callback_data='admin_menu')
 

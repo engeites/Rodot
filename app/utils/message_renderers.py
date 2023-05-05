@@ -24,10 +24,14 @@ class MyChildMessageRenderer:
     def get_readable_date(self, birth_date: datetime) -> str:
         return birth_date.strftime("%d.%m.%Y")
 
-    def get_user_child(self) -> Child:
+    def get_user_child(self) -> Child|bool:
         # TODO: This func may return None
-        children: list = self.user.children
-        return children[0]
+        try:
+            children: list = self.user.children
+            return children[0]
+        except Exception as e:
+            return False
+
 
     def form_advice_text(self):
         advices: tuple = get_advice_for_age(calculate_age_in_days(self.get_user_child().age))
