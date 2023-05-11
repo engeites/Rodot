@@ -110,15 +110,11 @@ async def set_body(message: types.Message, state: FSMContext):
     await state.update_data(tip=body)
     await state.set_state(Article.category.state)
 
-    reply_kb = show_categories()
-    prenatal_due = InlineKeyboardButton(text="Подготовка к родам",
-                                        callback_data='Подготовка к родам')
-    prenatal_house = InlineKeyboardButton(text="Покупки к рождению малыша",
-                                          callback_data="Покупки к рождению малыша")
-    prenatal_psychology = InlineKeyboardButton(text="Подготовка мамы и семьи",
-                                               callback_data="Подготовка мамы и семьи")
+    reply_kb = show_categories(no_cancel=True)
+    from config import PRENATAL_CATEGORIES
+    new_buttons = [InlineKeyboardButton(text=item[0], callback_data=item[1]) for item in PRENATAL_CATEGORIES]
 
-    reply_kb.add(prenatal_due, prenatal_psychology, prenatal_house)
+    reply_kb.add(*new_buttons)
     reply_kb.add(InlineKeyboardButton("Отмена", callback_data="cancel"))
 
     await message.answer("Текст есть. Выберите категорию", reply_markup=reply_kb)

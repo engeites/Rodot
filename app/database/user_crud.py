@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import sessionmaker
-from typing import Type
+
 from .models import User, Child, Bookmark, AdminUser
 from .db import engine
 from app.extentions import logger
@@ -13,9 +13,6 @@ Session = sessionmaker(bind=engine)
 
 def get_all_users() -> list:
     session = Session()
-    # users = session.query(User).all()
-    # users = session.query(User).filter(User.is_banned == False, User.blocked_bot == False).with_entities(
-    #     User.telegram_user_id).all()
 
     users = session.query(User).filter(
         or_(
@@ -118,12 +115,14 @@ def add_child(user_id: int, birth_date: datetime, sex: str):
         db.refresh(user)
         return child
 
-    except IntegrityError:
-        # TODO: Need logging here
+    except IntegrityError as e:
+        logger.error(f"Adding child for user ID: {user_id} failed."
+                     f"Child info: birthdate: {birth_date}, sex: {sex}")
         db.rollback()
 
     finally:
         db.close()
+        logger.info(f"Successfully added a child for user ID {user_id}")
 
 def add_bookmark(user_id: int, tip_id: int):
     session = Session()
@@ -207,9 +206,6 @@ def set_user_as_admin(user_id: int) -> None:
     session.close()
 
 
-
-
-
 def get_user_registration_stats():
     session = Session()
 
@@ -287,6 +283,7 @@ def get_active_users(hours_days: str, time_range: int) -> int:
 
 
 def mark_user_that_blocked_bot(user_id: int):
+    # TODO: Add user check. If user that blocked bot has sent another message, delete blocked_bot mark
     session = Session()
 
     try:

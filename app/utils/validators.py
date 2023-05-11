@@ -58,6 +58,7 @@ def calculate_age_in_days(birth_date: datetime) -> int:
 
 def calc_age_range_from_int(age_in_days: int) -> dict:
     if age_in_days < -100:
+        logger.warning(f"User tried to get categories for baby that is yet to be born. age_in_days={age_in_days}")
         return {'error': 'not born'}
     if -100 <= age_in_days < 0:
         return {'start': 0, 'end': 0}
@@ -68,8 +69,8 @@ def calc_age_range_from_int(age_in_days: int) -> dict:
     elif 61 <= age_in_days <= 90:
         return {'start': 91, 'end': 180}
     else:
+        logger.warning(f"User tried to get categories for baby that is too old. age_in_days={age_in_days}")
         return {'error': 'too old'}
-
 
 
 def calc_age_range_from_int_old(age_in_days: int) -> dict:

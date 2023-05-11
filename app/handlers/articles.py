@@ -1,13 +1,13 @@
-import datetime
 from contextlib import suppress
 
 from aiogram.utils.exceptions import MessageNotModified
 from aiogram import types, Dispatcher
+
 from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton
 
 from aiogram.dispatcher import FSMContext
-from aiogram.dispatcher.filters.state import State, StatesGroup
 
 from app.database.models import Child
 from app.database.user_crud import update_user_last_seen
@@ -47,6 +47,7 @@ async def show_tips_for_category(call: types.CallbackQuery, state: FSMContext, d
             return
         elif error_type == 'not born':
             await call.message.edit_text(yet_to_be_born)
+            return
 
     query_data = {
         'category': call.data,

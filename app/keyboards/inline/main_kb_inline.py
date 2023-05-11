@@ -37,7 +37,7 @@ def main_keyboard_registered(user_id: int):
     return reg_main_kb
 
 
-def show_categories():
+def show_categories(no_cancel: bool = False):
 
     cancel = InlineKeyboardButton(text='На главную', callback_data='На главную')
 
@@ -46,7 +46,8 @@ def show_categories():
     main_buttons = [InlineKeyboardButton(text=name[0], callback_data=name[1]) for name in CATEGORIES]
 
     categories_kb.add(*main_buttons)
-    categories_kb.add((cancel))
+    if not no_cancel:
+        categories_kb.add(cancel)
 
     return categories_kb
 
