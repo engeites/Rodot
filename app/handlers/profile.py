@@ -139,6 +139,7 @@ async def day_by_day(call: types.CallbackQuery):
     await call.answer('Подписка уже оформлена автоматически')
 
 
+
 def register_profile_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(profile_menu_inline, Text(equals="В профиль"))
     dp.register_callback_query_handler(my_child, Text(equals="👼🏻 Мой ребёнок"))

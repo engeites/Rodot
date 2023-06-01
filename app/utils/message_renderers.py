@@ -64,9 +64,20 @@ class MyChildMessageRenderer:
         return text
 
     def form_my_child_message(self, child: Child):
+        age_in_days = calculate_age_in_days(child.age)
+        last_digit = str(age_in_days)[-1]
+
+        if last_digit in [0, 5, 6, 7, 8, 9]:
+            cor_date = "дней"
+        elif last_digit in [2, 3, 4]:
+            cor_date = "дня"
+        else:
+            cor_date = "день"
+
         text = my_child.format(
             self.get_readable_date(child.age),
-            calculate_age_in_days(child.age),
+            age_in_days,
+            cor_date,
             self.sex_options[child.sex],
             self.form_advice_text()
         )
