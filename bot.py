@@ -69,7 +69,8 @@ if __name__ == '__main__':
         try:
             executor.start_polling(dispatcher,
                                    skip_updates=True,
-                                   on_startup=on_startup())
+                                   on_startup=on_startup(),
+                                   allowed_updates=['message',  'callback_query'])
 
         except Exception as e:
             logger.error(e)

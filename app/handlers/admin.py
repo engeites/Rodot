@@ -573,7 +573,6 @@ async def send_one_time_message(call: types.CallbackQuery, state: FSMContext):
 
     logger.warning(f"Admin ID {call.from_user.id} starts process of sending message to all users")
 
-
 async def set_one_time_ad_media(message: types.Message, state: FSMContext):
     file_id = message.photo[-1].file_id
     await message.answer("Получил картинку. Текст описания к ней не может превышать  1 024 символа. Отправьте текст.",

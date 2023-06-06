@@ -65,7 +65,7 @@ class MyChildMessageRenderer:
 
     def form_my_child_message(self, child: Child):
         age_in_days = calculate_age_in_days(child.age)
-        last_digit = str(age_in_days)[-1]
+        last_digit = int(str(age_in_days)[-1])
 
         if last_digit in [0, 5, 6, 7, 8, 9]:
             cor_date = "дней"

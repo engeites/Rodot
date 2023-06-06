@@ -4,6 +4,7 @@ from contextlib import suppress
 from aiogram import types
 from aiogram import Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.dispatcher.filters import ChatTypeFilter
 
 from aiogram.dispatcher.filters import Text
 from aiogram.utils.exceptions import MessageNotModified
@@ -187,11 +188,11 @@ async def send_help_message_unreg(call: types.CallbackQuery):
 async def void_messages(message: types.Message):
     print("Got this message that does not suit other handlers: ")
     print(message.text)
-    await message.answer("на " + message.text + " у меня нет ответа")
+    await message.answer("на " + message.text + " у меня нет ответа", reply_markup=initial_kb)
 
 
 def register_basic_handlers(dp: Dispatcher):
-    dp.register_message_handler(send_welcome, commands=['start'])
+    dp.register_message_handler(send_welcome, ChatTypeFilter(types.ChatType.PRIVATE), commands=['start'])
 
     dp.register_callback_query_handler(show_ages_keyboard, Text(equals='Выбрать возраст'), state="*")
     dp.register_callback_query_handler(go_to_main, get_ages_cb.filter(from_day='back'), state=AgeAndTheme.from_day)
@@ -211,5 +212,5 @@ def register_basic_handlers(dp: Dispatcher):
     dp.register_callback_query_handler(go_to_main, Text(equals="На главную"), state="*")
     dp.register_callback_query_handler(send_help_message_unreg, Text(equals="Как пользоваться ботом"))
     dp.register_callback_query_handler(send_help_message_reg, Text(equals="Помощь"))
-    dp.register_message_handler(open_main_menu, commands=['menu'], state="*")
-    dp.register_message_handler(void_messages)
+    dp.register_message_handler(open_main_menu, ChatTypeFilter(types.ChatType.PRIVATE), commands=['menu'], state="*", )
+    dp.register_message_handler(send_welcome, ChatTypeFilter(types.ChatType.PRIVATE))

@@ -28,9 +28,11 @@ def article_actions_keyboard(tip_id, admin: bool = False):
 
     mark.add(add_bookmark, go_to_main)
 
-    mark.add(InlineKeyboardButton(text="-------", callback_data="empty"))
+
 
     if admin:
+        mark.add(InlineKeyboardButton(text="-------", callback_data="empty"))
+
         add_bookmark = InlineKeyboardButton(
             text="Статистика",
             callback_data=admin_statistics_cb.new(

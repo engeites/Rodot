@@ -1,6 +1,6 @@
 from contextlib import suppress
-from datetime import datetime
-import pickle
+
+import config
 
 from aiogram import types, Dispatcher
 from aiogram.dispatcher import FSMContext
@@ -15,7 +15,7 @@ from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keybo
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
 
-from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles
+from app.texts.profile_texts import start_search_text, no_articles_found, list_of_found_articles, ask_new_question
 
 from app.database import user_crud, tips_crud
 from app.utils.message_renderers import MyChildMessageRenderer, TipRenderer
@@ -27,6 +27,10 @@ show_article_callback = CallbackData('show_article', 'id')
 
 class SearchState(StatesGroup):
     query = State()
+
+
+class AskState(StatesGroup):
+    question = State()
 
 async def profile_menu_inline(call: types.CallbackQuery):
     logger.info(f"User {call.from_user.id} opened profile menu")
@@ -127,17 +131,34 @@ async def render_article(call: CallbackQuery, callback_data: dict):
 
 
 
-async def my_city(call: types.CallbackQuery):
-    logger.info(f"User {call.from_user.id} tried to open 'My city' functionality")
-    await call.answer('Раздел "мой город" находится в разработке. Скоро здесь вы сможете найти куда сходить с ребёнком, '
-                      'а также новые знакомства!')
+async def ask_others(call: types.CallbackQuery, state: FSMContext):
+    logger.info(f"User {call.from_user.id} wants to ask community a question")
+    logger.info(call.message.chat.id)
+    await state.set_state(AskState.question.state)
+    mark =  InlineKeyboardMarkup(row_width=1)
+    mark.add(InlineKeyboardButton(
+        text="Отмена",
+        callback_data='cancel_question')
+    )
+    await call.message.edit_text(ask_new_question, reply_markup=mark)
+
+
+async def send_question_to_admin(message: types.Message, state: FSMContext):
+    logger.info(message)
+    await message.forward(config.ADMIN_CHAT)
+    await message.answer("Ваш вопрос добавлен в очередь. Администратор опубликует его после обработки",
+                         reply_markup=profile_kb)
+    await state.finish()
+
+async def cancel_question(call: types.CallbackQuery, state: FSMContext):
+    await state.finish()
+    await call.message.edit_text("Вопрос отменён", reply_markup=profile_kb)
 
 
 async def day_by_day(call: types.CallbackQuery):
     logger.info(f"User {call.from_user.id} tried to open 'Day by day' functionality")
 
     await call.answer('Подписка уже оформлена автоматически')
-
 
 
 def register_profile_handlers(dp: Dispatcher):
@@ -152,4 +173,6 @@ def register_profile_handlers(dp: Dispatcher):
     dp.register_message_handler(search_for_articles, state=SearchState.query)
     dp.register_callback_query_handler(render_article, show_article_callback.filter())
 
-    dp.register_callback_query_handler(my_city, Text(equals="🏙 Мой город"))
+    dp.register_callback_query_handler(ask_others, Text(equals="🆘 Задать вопрос"), state="*")
+    dp.register_message_handler(send_question_to_admin, state=AskState.question, content_types=['photo', 'text'])
+    dp.register_callback_query_handler(cancel_question, Text(equals="cancel_question"), state=AskState.question)
