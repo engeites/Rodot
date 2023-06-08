@@ -32,7 +32,6 @@ class MyChildMessageRenderer:
         except Exception as e:
             return False
 
-
     def form_advice_text(self):
         advices: tuple = get_advice_for_age(calculate_age_in_days(self.get_user_child().age))
         if not advices:

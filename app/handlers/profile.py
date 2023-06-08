@@ -160,7 +160,7 @@ async def cancel_question(call: types.CallbackQuery, state: FSMContext):
 async def day_by_day(call: types.CallbackQuery):
     logger.info(f"User {call.from_user.id} tried to open 'Day by day' functionality")
 
-    await call.answer('Подписка уже оформлена автоматически')
+    await call.answer('Подписка уже оформлена 😇')
 
 
 def register_profile_handlers(dp: Dispatcher):
