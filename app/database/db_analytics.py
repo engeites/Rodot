@@ -1,5 +1,5 @@
 from sqlalchemy.orm import sessionmaker
-from app.database.models import UserArticle
+from app.database.models import UserArticle, ParentingTip
 from app.database.db import engine
 from datetime import datetime, timedelta
 from sqlalchemy import func, distinct
@@ -72,3 +72,36 @@ def get_article_statistics(article_id):
         'last_month': last_month_count,
         'total': total_count
     }
+
+
+def get_most_viewed_tips():
+    session = Session()
+
+    # Get the current date and time
+    now = datetime.now()
+
+    # Calculate the start date for the last 7 days
+    last_week_start = now - timedelta(days=7)
+
+    # Query the database to get the articles and their view counts within the last 7 days
+    articles_query = session.query(UserArticle.article_id,
+                                   func.count(distinct(UserArticle.user_id)).label('view_count')) \
+        .filter(UserArticle.created_at >= last_week_start) \
+        .group_by(UserArticle.article_id) \
+        .subquery()
+
+    # Query the database to get the articles with the highest view counts
+    top_articles = session.query(ParentingTip, articles_query.c.view_count) \
+        .join(articles_query, ParentingTip.id == articles_query.c.article_id) \
+        .order_by(articles_query.c.view_count.desc()) \
+        .limit(10)  # Adjust the limit based on how many top articles you want
+
+    # Return the articles as a list of dictionaries
+    return [
+        {
+            'article_id': article.id,
+            'header': article.header,
+            'view_count': view_count
+        }
+        for article, view_count in top_articles
+    ]

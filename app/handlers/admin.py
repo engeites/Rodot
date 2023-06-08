@@ -9,6 +9,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.callback_data import CallbackData
 
 from app.database.advice_crud import add_new_advice
+from app.database.db_analytics import get_most_viewed_tips
 from app.database.models import AdvertisementLog, ParentingTip
 from app.database.user_crud import get_active_users, get_user_registration_stats
 from app.extentions import logger, ADMINS
@@ -241,8 +242,17 @@ async def get_active_users_statistics(call: types.CallbackQuery):
     За 7 дней {active_users_seven_days} пользователей выбирали категорию.
     """
 
+
+
     await call.message.answer(text)
 
+async def get_most_viewed_parenting_tips(call: types.CallbackQuery):
+    most_viewed_tips = get_most_viewed_tips()
+    text = ""
+    for tip in most_viewed_tips:
+        text += f"{tip['header']}. {tip['view_count']} просмотров.\n"
+
+    await call.message.answer(text)
 
 async def get_registration_statistics(call: types.CallbackQuery):
     statistics: dict = get_user_registration_stats()
@@ -708,3 +718,4 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(get_active_users_statistics, Text(equals="active_users_statistics"), user_id=ADMINS)
     dp.register_callback_query_handler(get_registration_statistics, Text(equals="registered_users_statistics"), user_id=ADMINS)
     dp.register_callback_query_handler(see_ad_statistics, action_on_ad_cb.filter(action='statistics'))
+    dp.register_callback_query_handler(get_most_viewed_parenting_tips, Text(equals='top_10_articles'))

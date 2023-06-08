@@ -11,6 +11,7 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.utils.exceptions import MessageNotModified
 
 from app.database.models import ParentingTip
+from app.database.user_crud import update_user_last_seen
 from app.keyboards.inline.bookmarks import bookmark_link_cb, all_bookmarks_keyboard
 from app.keyboards.inline.profile_kb_inline import profile_kb
 from app.keyboards.inline.bookmarks import add_bookmark_go_back
@@ -36,6 +37,7 @@ async def profile_menu_inline(call: types.CallbackQuery):
     logger.info(f"User {call.from_user.id} opened profile menu")
     await call.message.edit_text(profile_texts.profile_introduction,
         reply_markup=profile_kb)
+    update_user_last_seen(call.from_user.id)
 
 
 async def my_child(call: types.CallbackQuery):

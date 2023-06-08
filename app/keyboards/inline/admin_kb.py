@@ -14,6 +14,7 @@ def build_admin_kb():
 
     active_users_stat = InlineKeyboardButton("Активные пользователи", callback_data='active_users_statistics')
     registered_users_stat = InlineKeyboardButton("Статистика регистраций", callback_data='registered_users_statistics')
+    most_viewed = InlineKeyboardButton("Популярные статьи", callback_data='top_10_articles')
     ad_panel = InlineKeyboardButton("Управление рекламой", callback_data='ad_control_panel')
     back = InlineKeyboardButton("На главную", callback_data="На главную")
 
@@ -26,6 +27,7 @@ def build_admin_kb():
     mark.add(send_one_time_message)
 
     mark.add(active_users_stat, registered_users_stat)
+    mark.add(most_viewed)
     mark.add(back)
     return mark
 
