@@ -16,10 +16,12 @@ from app.extentions import logger, ADMINS
 from app.keyboards.inline.admin_kb import admin_kb, cancel_kb
 from app.keyboards.inline.main_kb_inline import show_categories
 from app.utils.message_renderers import TipRenderer
+from app.utils.texts_handling import handle_daily_article
 from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
-from app.database.daily_tips_crud import create_daily_tip, get_list_of_daily_tips, delete_daily_tip_by_id
+from app.database.daily_tips_crud import create_daily_tip, get_list_of_daily_tips, delete_daily_tip_by_id, \
+    get_daily_tip_by_id
 from app.database import db_analytics, ads_crud, tips_crud, user_crud
 
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
@@ -163,6 +165,32 @@ async def list_daily_tips(call: types.CallbackQuery):
     for tip in daily_tip_summary_list:
         answer_text += f"{tip}"
     await call.message.answer(answer_text)
+
+
+async def render_daily_tip(message: types.Message):
+    daily_tip_id = message.text.split()[-1]
+    try:
+        int(daily_tip_id)
+    except ValueError:
+        await message.answer("Введённый id не является числом")
+        return
+
+    daily_tip = get_daily_tip_by_id(int(daily_tip_id))
+
+    if not daily_tip:
+        await message.answer("Такой статьи с таким ID")
+        return
+
+    final_message = handle_daily_article(daily_tip)
+
+    if final_message['media']:
+
+        text = f"<b>{final_message['header']}</b>\n\n{final_message['body']}"
+        await message.bot.send_photo(message.from_user.id, final_message['media'], caption=text, parse_mode="HTML")
+
+    else:
+        final_message = f"<b>{daily_tip.header}</b>\n\n{daily_tip.body}"
+        await message.bot.send_message(chat_id=message.from_user.id, text=final_message, parse_mode='HTML')
 
 
 async def delete_daily_tip(message: types.Message):
@@ -685,29 +713,29 @@ async def cancel_any_input(call: types.CallbackQuery, state: FSMContext):
 
 def register_admin_hanlders(dp: Dispatcher):
     # Handlers for admin menu navigation
-    dp.register_callback_query_handler(cancel_any_input, Text(equals="cancel"), state='*')
-    dp.register_callback_query_handler(open_admin_panel, Text(equals="admin_menu"))
+    dp.register_callback_query_handler(cancel_any_input, Text(equals="cancel"), state='*', user_id=ADMINS)
+    dp.register_callback_query_handler(open_admin_panel, Text(equals="admin_menu"), user_id=ADMINS)
 
     # Handlers for sending one-time message to all users:
-    dp.register_callback_query_handler(send_one_time_message, Text(equals="send_one_time_media"), state="*")
+    dp.register_callback_query_handler(send_one_time_message, Text(equals="send_one_time_media"), state="*", user_id=ADMINS)
     dp.register_message_handler(set_one_time_ad_media, content_types=['photo'], state=OneTimeMessage.media)
     dp.register_message_handler(set_one_time_ad_body, state=OneTimeMessage.body)
     dp.register_callback_query_handler(confirm_one_time_msg_sending, Text(equals="confirm_ad_sending"), state=OneTimeMessage.confirm)
     dp.register_callback_query_handler(cancel_one_time_msg_sending, Text(equals="cancel_ad_sending"), state=OneTimeMessage.confirm)
 
     # Handlers for editing Tip text:
-    dp.register_callback_query_handler(start_tip_content_editing, edit_tip_cb.filter(), state="*")
+    dp.register_callback_query_handler(start_tip_content_editing, edit_tip_cb.filter(), state="*", user_id=ADMINS)
     dp.register_message_handler(update_tip, state=EditArticle.new_text)
     dp.register_callback_query_handler(confirm_edited_tip, Text(equals="confirm_edited_tip"), state=EditArticle.confirm)
     dp.register_callback_query_handler(cancel_edited_tip, Text(equals="cancel_edited_tip"), state=EditArticle.confirm)
 
     # Handlers for deleting Tip:
-    dp.register_callback_query_handler(delete_tip, delete_tip_cb.filter(), state="*")
+    dp.register_callback_query_handler(delete_tip, delete_tip_cb.filter(), state="*", user_id=ADMINS)
     dp.register_callback_query_handler(confirm_deleting_tip, Text(equals="confirm_deleting_tip"), state=DeleteArticle.confirm)
     dp.register_callback_query_handler(cancel_deleting_tip, Text(equals="cancel_deleting_tip"), state=DeleteArticle.confirm)
 
     # Handlers for adding new advertisement to ParentingTip:
-    dp.register_callback_query_handler(add_new_ad_for_article, add_advertisement_cb.filter(), state="*")
+    dp.register_callback_query_handler(add_new_ad_for_article, add_advertisement_cb.filter(), state="*", user_id=ADMINS)
     dp.register_message_handler(add_text_to_ad, state=Advertisement.ad_text)
     dp.register_message_handler(set_ad_show_period, state=Advertisement.active_period)
     dp.register_message_handler(set_ad_vendor, state=Advertisement.vendor)
@@ -716,19 +744,19 @@ def register_admin_hanlders(dp: Dispatcher):
 
 
     # Handlers for ads panel
-    dp.register_callback_query_handler(advertisement_control_panel, Text(equals="ad_control_panel"))
+    dp.register_callback_query_handler(advertisement_control_panel, Text(equals="ad_control_panel"), user_id=ADMINS)
     dp.register_callback_query_handler(setup_advertisement, check_ad_options_cb.filter())
     dp.register_callback_query_handler(delete_advertisement, action_on_ad_cb.filter(action='delete'))
 
     # Handlers for creating normal ParentingTip
-    dp.register_callback_query_handler(add_new_article, Text(equals="add_material"))
+    dp.register_callback_query_handler(add_new_article, Text(equals="add_material"), user_id=ADMINS)
     dp.register_message_handler(set_header, state=Article.header.state)
     dp.register_message_handler(set_body, state=Article.tip.state)
     dp.register_callback_query_handler(set_category, state=Article.category.state)
     dp.register_callback_query_handler(set_age_inline, get_ages_cb.filter(), state=Article.age_range.state)
 
     # Handlers for handling DailyTip
-    dp.register_callback_query_handler(add_new_daily_article, Text(equals="add_daily"))
+    dp.register_callback_query_handler(add_new_daily_article, Text(equals="add_daily"), user_id=ADMINS)
     dp.register_message_handler(add_new_daily_article, commands=['new_daily'], state='*')
     dp.register_message_handler(header_input, state=DailyArticle.header)
     dp.register_message_handler(body_input, state=DailyArticle.body)
@@ -736,12 +764,13 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_message_handler(pass_media, commands=['media_pass'], state=DailyArticle.media)
     dp.register_message_handler(add_media_for_daily_tip, content_types=['photo'], state=DailyArticle.media)
     # handlers others from creation handling
-    dp.register_callback_query_handler(list_daily_tips, Text(equals="list_daily"))
-    dp.register_message_handler(delete_daily_tip, Text(startswith="delete_daily_tip"))
+    dp.register_callback_query_handler(list_daily_tips, Text(equals="list_daily"), user_id=ADMINS)
+    dp.register_message_handler(delete_daily_tip, Text(startswith="delete_daily_tip"), user_id=ADMINS)
+    dp.register_message_handler(render_daily_tip, Text(startswith="render_daily"))
 
 
     # Handlers for creating short advices (ChildAdvice model)
-    dp.register_callback_query_handler(cmd_new_advice, Text(equals="add_advice"))
+    dp.register_callback_query_handler(cmd_new_advice, Text(equals="add_advice"), user_id=ADMINS)
     dp.register_message_handler(cmd_new_advice, commands=['new_advice'])
     dp.register_message_handler(set_are_range_start, state=Advice.age_range_start)
     dp.register_message_handler(set_age_range_end, state=Advice.age_range_end)
@@ -751,5 +780,5 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(get_statistics_by_article, admin_statistics_cb.filter(), state='*')
     dp.register_callback_query_handler(get_active_users_statistics, Text(equals="active_users_statistics"), user_id=ADMINS)
     dp.register_callback_query_handler(get_registration_statistics, Text(equals="registered_users_statistics"), user_id=ADMINS)
-    dp.register_callback_query_handler(see_ad_statistics, action_on_ad_cb.filter(action='statistics'))
-    dp.register_callback_query_handler(get_most_viewed_parenting_tips, Text(equals='top_10_articles'))
+    dp.register_callback_query_handler(see_ad_statistics, action_on_ad_cb.filter(action='statistics'), user_id=ADMINS)
+    dp.register_callback_query_handler(get_most_viewed_parenting_tips, Text(equals='top_10_articles'), user_id=ADMINS)

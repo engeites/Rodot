@@ -5,8 +5,8 @@ from aiogram.utils.callback_data import CallbackData
 def build_admin_kb():
     add_parenting_tip = InlineKeyboardButton("Добавить статью", callback_data="add_material")
     add_daily_tip = InlineKeyboardButton("Добавить кор.статью", callback_data="add_daily")
-    list_daily_tips = InlineKeyboardButton("Список коротких статей", callback_data="list_daily")
-    del_daily_tip = InlineKeyboardButton("Удалить кор. статью", callback_data="del_daily")
+    list_daily_tips = InlineKeyboardButton("Список кор. статей", callback_data="list_daily")
+    render_daily_tip = InlineKeyboardButton("Показать кор.статью", callback_data="render_daily")
     add_short_advice = InlineKeyboardButton("Добавить совет", callback_data="add_advice")
     del_short_advice = InlineKeyboardButton("Удалить совет", callback_data="del_advice")
 
@@ -21,7 +21,7 @@ def build_admin_kb():
 
     mark = InlineKeyboardMarkup()
     mark.add(add_parenting_tip, add_daily_tip)
-    mark.add(list_daily_tips, del_daily_tip)
+    mark.add(list_daily_tips, render_daily_tip)
     mark.add(add_short_advice, del_short_advice)
     mark.add(ad_panel)
     mark.add(send_one_time_message)

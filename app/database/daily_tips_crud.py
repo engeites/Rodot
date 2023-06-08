@@ -39,3 +39,12 @@ def create_daily_tip(**qwargs) -> DailyTip:
     db.commit()
     db.refresh(daily_tip)
     return daily_tip
+
+
+def get_daily_tip_by_id(daily_tip_id: int) -> DailyTip:
+    session = Session()
+    try:
+        daily_tip: DailyTip = session.query(DailyTip).get(daily_tip_id)
+        return daily_tip
+    finally:
+        session.close()
