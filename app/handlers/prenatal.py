@@ -1,8 +1,11 @@
+from contextlib import suppress
+
 from aiogram import types
 from aiogram import Dispatcher
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from aiogram.dispatcher.filters import Text
+from aiogram.utils.exceptions import MessageNotModified
 
 from app.handlers.basic import AgeAndTheme
 from app.keyboards.inline.ages import get_ages_cb
@@ -13,9 +16,12 @@ from app.utils.form_tip_list import form_tip_list
 
 
 async def show_prenatal_categories(call: types.CallbackQuery):
-    # Show categories for prenatal period
-    await call.message.edit_text("Здесь перечислены категории статей, которые лучше прочитать до родов",
-                                 reply_markup=prenatal_kb)
+    with suppress(MessageNotModified):
+
+        # Show categories for prenatal period
+
+        await call.message.edit_text("Здесь перечислены категории статей, которые лучше прочитать до родов",
+                                     reply_markup=prenatal_kb)
 
 
 async def show_tips_for_category(call: types.CallbackQuery, callback_data: dict):

@@ -135,13 +135,14 @@ async def go_back_to_categories(call: types.CallbackQuery, state: FSMContext):
 
 
 async def go_to_main(call: types.CallbackQuery, state: FSMContext):
-    await state.finish()
-    logger.info("Finished previous state")
-    user_registered = user_crud.check_if_user_passed_reg(call.from_user.id)
-    if user_registered:
-        await call.message.edit_text(main_menu_registered, reply_markup=main_keyboard_registered(call.from_user.id))
-    else:
-        await call.message.edit_text(main_menu_unregistered, reply_markup=initial_kb)
+    with suppress(MessageNotModified):
+        await state.finish()
+        logger.info("Finished previous state")
+        user_registered = user_crud.check_if_user_passed_reg(call.from_user.id)
+        if user_registered:
+            await call.message.edit_text(main_menu_registered, reply_markup=main_keyboard_registered(call.from_user.id))
+        else:
+            await call.message.edit_text(main_menu_unregistered, reply_markup=initial_kb)
 
 
 async def open_main_menu(message: types.Message, state: FSMContext):
