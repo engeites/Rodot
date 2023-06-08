@@ -19,7 +19,7 @@ from app.utils.message_renderers import TipRenderer
 from app.utils.time_ranges import get_hours_passed_today
 from app.utils.validators import validate_age
 from app.database.tips_crud import create_new_article
-from app.database.daily_tips_crud import create_daily_tip
+from app.database.daily_tips_crud import create_daily_tip, get_list_of_daily_tips, delete_daily_tip_by_id
 from app.database import db_analytics, ads_crud, tips_crud, user_crud
 
 from app.keyboards.inline.ages import ages_keyboard, get_ages_cb
@@ -152,6 +152,36 @@ async def set_age_inline(call: types.CallbackQuery, callback_data: dict, state: 
 
 
 # ------ Handlers for creating DailyTip --------
+
+async def list_daily_tips(call: types.CallbackQuery):
+    daily_tip_summary_list = get_list_of_daily_tips()
+    if len(daily_tip_summary_list) == 0:
+        await call.message.answer("Нет статей")
+        return
+    answer_text = ""
+
+    for tip in daily_tip_summary_list:
+        answer_text += f"{tip}"
+    await call.message.answer(answer_text)
+
+
+async def delete_daily_tip(message: types.Message):
+    daily_tip_id = message.text.split()[-1]
+    try:
+        int(daily_tip_id)
+    except ValueError:
+        await message.answer("Введённый id не является числом")
+        return
+
+    logger.info(f"Prepared to delete daily tip with ID {daily_tip_id}")
+    success = delete_daily_tip_by_id(int(daily_tip_id))
+    if success:
+        logger.info(f"Daily tip with ID {daily_tip_id} was successfully deleted by admin {message.from_user.id}")
+        await message.answer("Статья успешно удалена")
+    else:
+        await message.answer("При удалении возникла ошибка. Чекайте логи.")
+
+
 
 async def add_new_daily_article(call: types.CallbackQuery, state: FSMContext):
     await call.message.answer("Добавляем новую статью, которая будет приходить когда зарегистрированному ребёнку исполнится столько-то дней. Введите заголовок",
@@ -697,7 +727,7 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_callback_query_handler(set_category, state=Article.category.state)
     dp.register_callback_query_handler(set_age_inline, get_ages_cb.filter(), state=Article.age_range.state)
 
-    # Handlers for creating DailyTip
+    # Handlers for handling DailyTip
     dp.register_callback_query_handler(add_new_daily_article, Text(equals="add_daily"))
     dp.register_message_handler(add_new_daily_article, commands=['new_daily'], state='*')
     dp.register_message_handler(header_input, state=DailyArticle.header)
@@ -705,6 +735,10 @@ def register_admin_hanlders(dp: Dispatcher):
     dp.register_message_handler(age_in_days_input, state=DailyArticle.age_in_days)
     dp.register_message_handler(pass_media, commands=['media_pass'], state=DailyArticle.media)
     dp.register_message_handler(add_media_for_daily_tip, content_types=['photo'], state=DailyArticle.media)
+    # handlers others from creation handling
+    dp.register_callback_query_handler(list_daily_tips, Text(equals="list_daily"))
+    dp.register_message_handler(delete_daily_tip, Text(startswith="delete_daily_tip"))
+
 
     # Handlers for creating short advices (ChildAdvice model)
     dp.register_callback_query_handler(cmd_new_advice, Text(equals="add_advice"))

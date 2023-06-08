@@ -47,7 +47,6 @@ async def send_daily_tips_to_all(bot: aiogram.Bot):
 
         # 3. Send the DailyTip message to each parent
         for child in children:
-            print(f"This child needs {daily_tip.header}. As his birthday is at {child.age}")
             parent = child.parent
             final_message = handle_daily_article(daily_tip)
 
