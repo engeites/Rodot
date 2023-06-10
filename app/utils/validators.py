@@ -68,6 +68,7 @@ def calc_age_range_from_int(age_in_days: int) -> dict:
         return {'start': 31, 'end': 180}
     elif 181 <= age_in_days <= 165:
         return {'start': 181, 'end': 365}
+
     else:
         logger.warning(f"User tried to get categories for baby that is too old. age_in_days={age_in_days}")
         return {'error': 'too old'}
